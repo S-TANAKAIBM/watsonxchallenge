@@ -1,0 +1,35 @@
+{
+  "last_updated": "2026-07-21",
+  "references": [
+    {
+      "id": "ref-001",
+      "type": "ibm_case",
+      "title": "A社（自動車部品メーカー）watsonx.ai導入事例",
+      "summary": "従業員2,000名の自動車部品メーカー。watsonx.ai導入後6ヶ月でレポート作成工数35%削減。成功の鍵は現場リーダーを巻き込んだハンズオントレーニングの実施。",
+      "products": ["watsonx.data"],
+      "industry": "製造業",
+      "url": "",
+      "enabled": true
+    },
+    {
+      "id": "ref-002",
+      "type": "ibm_case",
+      "title": "地銀C社 Guardium導入事例",
+      "summary": "同規模地銀でGuardiumを活用し、セキュリティポリシー自動化により監査工数を年間40%削減。エグゼクティブブリーフィングを実施後に契約継続＋拡張。",
+      "products": ["Guardium"],
+      "industry": "金融・保険",
+      "url": "",
+      "enabled": true
+    },
+    {
+      "id": "ref-003",
+      "type": "ibm_case",
+      "title": "大手小売D社 Maximo需要予測事例",
+      "summary": "国内大手小売でMaximoの需要予測機能を本番適用し、廃棄ロスを年間2億円削減。越境EC展開では事前のマスターデータ整備が成功の鍵。",
+      "products": ["Maximo"],
+      "industry": "流通・小売",
+      "url": "",
+      "enabled": true
+    }
+  ]
+}

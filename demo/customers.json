@@ -1,0 +1,86 @@
+{
+  "customers": [
+    {
+      "id": "demo-onboard",
+      "mode": "onboarding",
+      "label": "A社（製造業・オンボーディング直後）",
+      "data": {
+        "company_name": "A社（自動車部品メーカー）",
+        "industry": "製造業（自動車部品）",
+        "company_size": "従業員2,000名・国内5拠点",
+        "products": "Watsonx.ai",
+        "license_count": 50,
+        "contract_start_date": "2025-04-01（契約から6週間経過）",
+        "phase": "導入直後",
+        "registered_users": 20,
+        "active_users": 8,
+        "usecase_status": "一部実装（品質レポート自動化のみ着手）",
+        "ticket_count": 3,
+        "ticket_summary": "ログインエラーが2件（解消済み）、API連携方法の質問が1件（対応中）",
+        "contact_role": "情報システム部 課長（意思決定権なし）",
+        "executive_contact": "部長以上との接触なし",
+        "champion": "あり（情報システム部 田中係長）",
+        "meeting_notes": "先週のキックオフで管理者設定完了を確認。現場エンジニア3名がトレーニングに参加したが、他部門への展開が止まっている。担当者から「操作が難しい」との声あり。",
+        "customer_concerns": "ツールの操作習熟に時間がかかるとの懸念。現場の抵抗感が強い。NPS未回収。",
+        "success_cases": "同業B社（自動車部品・1,500名）で同製品導入。6ヶ月でレポート作成工数35%削減。推進成功の鍵は現場リーダーを巻き込んだハンズオントレーニング実施。",
+        "nps_score": "未回収",
+        "days_since_contact": 7,
+        "bp_name": "不明",
+        "bp_experience": "不明",
+        "bp_relationship": "不明",
+        "ibm_c_involved": "なし",
+        "tel_involved": "なし"
+      }
+    },
+    {
+      "id": "demo-nba",
+      "mode": "nba",
+      "label": "B社（金融・安定運用期・チャーンリスク）",
+      "data": {
+        "company_name": "B社（地方銀行）",
+        "industry": "金融・保険（地方銀行）",
+        "company_size": "従業員800名・支店30拠点",
+        "products": "IBM MAAS360",
+        "license_count": 300,
+        "phase": "安定運用（契約18ヶ月）",
+        "renewal_date": "2025-09-30（約4ヶ月後）",
+        "active_rate": "52%（156/300名）",
+        "nps_score": "NPS -15（前回+10から急落）",
+        "ticket_trend": "増加傾向（前四半期比+40%）。主にモバイルデバイス管理の操作に関する問い合わせ。",
+        "days_since_contact": 21,
+        "usecase_rate": "一部実装（モバイル端末管理のみ。セキュリティポリシー自動化は未着手）",
+        "risk_signals": "コスト対効果への疑問を担当者が口にするようになった。他社SaaS製品を比較検討中との情報あり（競合：VMware Workspace ONE）。予算見直しの時期と重なっている。",
+        "competitor_info": "VMware Workspace ONEを3ヶ月前から評価中。IT部門内の一部メンバーが推薦している模様。",
+        "upsell_signals": "セキュリティインシデント対応強化に関心あり。SIEM連携の可能性を打診された。",
+        "budget_info": "年間IT予算の見直し時期。コスト削減圧力あり。",
+        "meeting_notes": "先月の定例では担当者の返答が短くなり、積極的な質問がなかった。エグゼクティブとの接点は6ヶ月以上なし。",
+        "escalation_history": "7ヶ月前にシステム障害で3日間のサービス停止。当時はエスカレーション対応済み。顧客側の信頼回復は完全ではない可能性あり。",
+        "success_cases": "同規模地銀C社でMAAS360を活用し、セキュリティポリシー自動化により監査工数を年間40%削減。エグゼクティブブリーフィングを実施後に契約継続＋拡張。"
+      }
+    },
+    {
+      "id": "demo-qbr",
+      "mode": "qbr",
+      "label": "C社（流通・安定運用・QBR準備）",
+      "data": {
+        "company_name": "C社（大手スーパーマーケットチェーン）",
+        "industry": "流通・小売",
+        "company_size": "従業員5,000名・全国200店舗",
+        "products": "IBM Sterling Order Management",
+        "review_period": "2025年Q1（1月〜3月）",
+        "customer_kpis": "①注文処理リードタイムを30%短縮 ②欠品率を現状5%から2%以下に削減 ③カスタマーサポート問い合わせ件数を月500件から300件以下に削減",
+        "active_rate": "78%（390/500名）",
+        "usecase_status": "主要ユースケース完了（オムニチャネル在庫管理・注文自動振り分け）。返品管理自動化は未着手。",
+        "ticket_summary": "Q1のサポートチケット件数：月平均280件（目標300件以下を達成）。主な内容は返品処理に関する操作質問。",
+        "nps_score": "NPS +42（前四半期+28から上昇）",
+        "other_metrics": "注文処理リードタイム：前年比28%短縮（目標30%まであと少し）。欠品率：3.2%（目標2%には未達）。オンラインとオフラインの在庫同期精度：99.1%達成。",
+        "prev_actions": "①返品管理モジュールの導入検討 ②物流チームへの追加トレーニング実施 ③AIによる需要予測機能のPoC開始",
+        "prev_achievement": "①未着手（予算承認待ち） ②完了（3月に2回実施、50名参加） ③完了（PoCで15%の予測精度向上を確認）",
+        "pending_issues": "返品管理自動化が未着手。予算承認の見通しは立っているが、4月以降の実装開始となる見込み。",
+        "next_biz_goal": "夏季繁忙期（7〜8月）に向けた在庫精度のさらなる向上。2026年度中に東南アジア2カ国への越境EC展開を計画中。",
+        "upsell_options": "①返品管理モジュールの正式導入（PoCで効果実証済み） ②AI需要予測オプションの本番適用 ③越境EC対応のグローバル拡張ライセンス",
+        "industry_insights": "国内大手小売D社で同製品の需要予測機能を本番適用し、廃棄ロスを年間2億円削減。越境EC展開では事前のマスターデータ整備が成功の鍵。"
+      }
+    }
+  ]
+}

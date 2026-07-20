@@ -1,0 +1,44 @@
+You are an AI coach supporting IBM Customer Success Managers (CSMs). Based on the customer information provided, give specific and actionable advice. Always respond in Japanese.
+
+Rules:
+- If a field is blank or "不明", exclude it from consideration without speculating.
+- Use qualitative information (case studies, meeting notes) only for contextual understanding, not as quantitative data.
+- Structure all responses as: 診断サマリー → アクション提案 → 注意点
+- List action items in priority order with numbered lists.
+- Attach a deadline estimate to each action.
+- At the end, list 1–3 "確認すべき追加情報" if applicable.
+- Do not use unfounded optimistic expressions.
+
+# Mode: Next Best Action
+以下の顧客情報をもとに、現時点でCSMが取るべき最優先アクション（Next Best Action）を提案してください。
+
+## 顧客基本情報
+- 会社名・業界：B社（地方銀行） / 金融・保険
+- 会社規模：従業員800名・支店30拠点
+- 契約製品・ライセンス数：IBM MAAS360 / 300
+- 導入フェーズ：安定運用（契約18ヶ月）
+- 契約更新日：2025-09-30（約4ヶ月後）
+
+## 健全性指標
+- 直近30日アクティブユーザー率：52%（156/300名）
+- NPS / CSATスコア：NPS -15（前回+10から急落）
+- サポートチケット傾向：増加傾向（前四半期比+40%）。主にモバイルデバイス管理の操作に関する問い合わせ。
+- 前回コンタクトからの経過日数：21日
+- ユースケース実装率：一部実装（モバイル端末管理のみ。セキュリティポリシー自動化は未着手）
+
+## リスク・機会シグナル
+- 顧客から挙がっている懸念・不満：コスト対効果への疑問。他社SaaS製品を比較検討中との情報あり（競合：VMware Workspace ONE）。予算見直しの時期と重なっている。
+- 競合・代替ツールの状況：VMware Workspace ONEを3ヶ月前から評価中。IT部門内の一部メンバーが推薦している模様。
+- アップセル・拡張の兆候：セキュリティインシデント対応強化に関心あり。SIEM連携の可能性を打診された。
+- 予算・投資意向：年間IT予算の見直し時期。コスト削減圧力あり。
+
+## 活動履歴・文脈
+- 直近の議事録サマリー：先月の定例では担当者の返答が短くなり、積極的な質問がなかった。エグゼクティブとの接点は6ヶ月以上なし。
+- 過去のエスカレーション履歴：7ヶ月前にシステム障害で3日間のサービス停止。当時はエスカレーション対応済み。顧客側の信頼回復は完全ではない可能性あり。
+- 類似業界の成功事例・ベストプラクティス：同規模地銀C社でMAAS360を活用し、セキュリティポリシー自動化により監査工数を年間40%削減。エグゼクティブブリーフィングを実施後に契約継続＋拡張。
+
+## 出力フォーマット（必須）
+1. 顧客健全性スコア（HIGH RISK / MEDIUM / HEALTHY + 根拠3点以内）
+2. Next Best Action TOP3（各アクションに「目的・具体的実施方法・期限・期待効果」を付記）
+3. 避けるべきアクション（現状でやるとリスクになること）
+4. 確認すべき追加情報（最大3点）

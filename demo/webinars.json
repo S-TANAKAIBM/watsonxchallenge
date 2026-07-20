@@ -1,0 +1,46 @@
+{
+  "source": "https://pages.github.ibm.com/customer-success-japan/ReportDocs/webinars_2026_ytd.html",
+  "last_updated": "2026-07-20",
+  "webinars": [
+    {
+      "date": "2026-06-23",
+      "title": "知らないままで大丈夫？開発品質・効率向上が期待できるIBM Bob便利機能6選",
+      "presenter": "野中 佑太",
+      "product": "IBM Bob",
+      "views": 78,
+      "slide_url": "https://pages.github.ibm.com/customer-success-japan/ReportDocs/slides/20260623_bob.pdf",
+      "video_url": "https://pages.github.ibm.com/customer-success-japan/ReportDocs/video/20260623_bob",
+      "status": "過去"
+    },
+    {
+      "date": "2026-06-30",
+      "title": "MAS(Maximo Application Suite)に移行する理由を考えてみた",
+      "presenter": "田中 俊介",
+      "product": "Maximo",
+      "views": 8,
+      "slide_url": "https://pages.github.ibm.com/customer-success-japan/ReportDocs/slides/20260630_maximo.pdf",
+      "video_url": null,
+      "status": "過去"
+    },
+    {
+      "date": "2026-07-15",
+      "title": "アップデートで何が変わった？デモで学んで使いこなすIBM Bob2.0",
+      "presenter": "上原 瑞歩",
+      "product": "IBM Bob",
+      "views": null,
+      "slide_url": null,
+      "video_url": null,
+      "status": "過去"
+    },
+    {
+      "date": "2026-07-31",
+      "title": "Instana 103(初心者向け)",
+      "presenter": "足立 嵩",
+      "product": "Instana",
+      "views": null,
+      "slide_url": null,
+      "video_url": null,
+      "status": "未来"
+    }
+  ]
+}

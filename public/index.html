@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Customer Success Coach</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; color: #1f2328; background: #f0f2f5; min-height: 100vh; }
+
+  /* Top Bar */
+  .topbar { background: #1f2328; color: #fff; padding: 0 24px; height: 52px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { font-size: 13px; font-weight: 700; color: #3b82d4; letter-spacing: .04em; }
+  .topbar-sep { width: 1px; height: 20px; background: #30363d; }
+  .topbar-title { font-size: 13px; color: #c9d1d9; font-weight: 500; }
+  .topbar-spacer { flex: 1; }
+  .topbar-status { font-size: 11px; color: #8b949e; display: flex; align-items: center; gap: 5px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #3fb950; }
+  .status-dot.red { background: #ef4444; }
+
+  /* Layout */
+  .main { display: flex; max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 16px; gap: 20px; }
+  .left  { width: 380px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+  .right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ICN Banner */
+  .icn-banner { background: #fff; border: 1px solid #e5e7eb; border-left: 4px solid #3b82d4; border-radius: 6px; padding: 12px 14px; }
+  .icn-label { font-size: 11px; font-weight: 700; color: #3b82d4; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .future-tag { font-size: 10px; font-weight: 600; background: #f0f4ff; color: #3b82d4; border: 1px solid #d0e0f8; padding: 1px 6px; border-radius: 10px; text-transform: none; letter-spacing: 0; }
+  .icn-row { display: flex; gap: 8px; align-items: center; }
+  .icn-input { flex: 1; border: 1px solid #d0d7de; border-radius: 5px; padding: 7px 10px; font-size: 13px; font-family: "Consolas", monospace; letter-spacing: .05em; outline: none; }
+  .icn-input:focus { border-color: #3b82d4; box-shadow: 0 0 0 3px rgba(59,130,212,.12); }
+  .btn-icn-load { background: #f7f8fa; border: 1px solid #d0d7de; border-radius: 5px; padding: 7px 12px; font-size: 12px; font-weight: 600; color: #57606a; cursor: pointer; white-space: nowrap; }
+  .btn-icn-load:hover { border-color: #3b82d4; color: #3b82d4; }
+  .icn-hint { font-size: 11px; color: #8b949e; margin-top: 4px; }
+  .karute-loaded { display: none; font-size: 11px; color: #059669; font-weight: 600; margin-top: 4px; }
+  /* 製品セレクター */
+  .product-selector { display: none; margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+  .product-selector-label { font-size: 11px; font-weight: 700; color: #1f2328; margin-bottom: 6px; }
+  .product-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .product-chip {
+    border: 1.5px solid #d0d7de; border-radius: 20px; padding: 4px 12px;
+    font-size: 11.5px; font-weight: 600; color: #57606a; background: #fff;
+    cursor: pointer; transition: all .12s;
+  }
+  .product-chip:hover { border-color: #3b82d4; color: #3b82d4; background: #f0f4ff; }
+  .product-chip.selected { border-color: #3b82d4; color: #fff; background: #3b82d4; }
+  .product-chip-hint { font-size: 10px; color: #8b949e; margin-top: 5px; }
+
+  /* Mode Selector */
+  .mode-selector { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .mode-label { font-size: 11px; font-weight: 600; color: #57606a; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 10px; }
+  .mode-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .mode-tab { border: 1.5px solid #e5e7eb; border-radius: 6px; padding: 9px 6px; text-align: center; cursor: pointer; background: #fff; transition: all .15s; }
+  .mode-tab:hover { border-color: #3b82d4; background: #f0f4ff; }
+  .mode-tab.active-onboard { border-color: #3b82d4; background: #f0f4ff; }
+  .mode-tab.active-nba     { border-color: #7c5cd8; background: #f5f0ff; }
+  .mode-tab.active-qbr     { border-color: #059669; background: #f0fdf4; }
+  .mode-icon { font-size: 16px; margin-bottom: 3px; }
+  .mode-name { font-size: 11px; font-weight: 700; color: #1f2328; }
+  .mode-desc { font-size: 10px; color: #57606a; }
+
+  /* Form Card */
+  .form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+  .form-card-header { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 7px; }
+  .hdr-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .d-blue   { background: #3b82d4; } .d-purple { background: #7c5cd8; }
+  .d-green  { background: #059669; } .d-gray   { background: #8b949e; }
+  .d-orange { background: #f59e0b; }
+  .form-card-title { font-size: 12px; font-weight: 700; flex: 1; }
+  .badge-req { margin-left: auto; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+  .badge-opt { margin-left: auto; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: #f7f8fa; color: #8b949e; border: 1px solid #e5e7eb; }
+  .form-card-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Fields */
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-label { font-size: 11px; font-weight: 600; color: #1f2328; }
+  .req-mark { color: #ef4444; }
+  .field-hint { font-size: 10px; color: #8b949e; }
+  .isc-hint { font-size: 10px; color: #3b82d4; display: flex; align-items: center; gap: 4px; }
+  .isc-dot-sm { width: 5px; height: 5px; border-radius: 50%; background: #3b82d4; flex-shrink: 0; }
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    width: 100%; border: 1px solid #d0d7de; border-radius: 5px; padding: 6px 9px; font-size: 13px; font-family: inherit; color: #1f2328; background: #fff; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #3b82d4; box-shadow: 0 0 0 3px rgba(59,130,212,.12); }
+  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2357606a' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; padding-right: 26px; }
+  input.future-f, select.future-f { border-style: dashed; border-color: #bcd0f0; background: #f8fbff; }
+  .toggle-group { display: flex; gap: 5px; flex-wrap: wrap; }
+  .toggle-btn { border: 1.5px solid #d0d7de; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #57606a; background: #fff; cursor: pointer; }
+  .toggle-btn.sel-blue   { border-color: #3b82d4; background: #f0f4ff; color: #3b82d4; font-weight: 700; }
+  .toggle-btn.sel-purple { border-color: #7c5cd8; background: #f5f0ff; color: #7c5cd8; font-weight: 700; }
+  .toggle-btn.sel-green  { border-color: #059669; background: #f0fdf4; color: #059669; font-weight: 700; }
+  .toggle-btn.sel-orange { border-color: #f59e0b; background: #fffbeb; color: #d97706; font-weight: 700; }
+  .bp-alert { display: none; border-radius: 5px; padding: 8px 12px; font-size: 11px; margin-top: 4px; gap: 6px; align-items: flex-start; }
+  .bp-alert.show { display: flex; }
+
+  /* Submit */
+  .submit-area { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .submit-hint { flex: 1; font-size: 11px; color: #57606a; }
+  .btn-clear  { background: #fff; color: #57606a; border: 1px solid #d0d7de; border-radius: 5px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
+  .btn-submit { background: #3b82d4; color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-submit:disabled { background: #93c5fd; cursor: not-allowed; }
+
+  /* Output Panel */
+  .output-header { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .output-header-title { font-size: 14px; font-weight: 700; flex: 1; }
+  .risk-badge { font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 20px; }
+  .risk-high    { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+  .risk-medium  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .risk-healthy { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+  .risk-unknown { background: #f7f8fa; color: #8b949e; border: 1px solid #e5e7eb; }
+  .btn-copy { background: #f7f8fa; border: 1px solid #d0d7de; border-radius: 5px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #57606a; cursor: pointer; }
+  .btn-copy:hover { border-color: #3b82d4; color: #3b82d4; }
+
+  .output-body {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 400px;
+    flex: 1;
+  }
+  .output-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: #8b949e; gap: 10px; text-align: center; }
+  .output-placeholder-icon { width: 48px; height: 48px; border-radius: 50%; background: #f0f4ff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .output-content { white-space: pre-wrap; font-size: 13.5px; line-height: 1.8; color: #1f2328; }
+  .output-content h2, .output-content h3 { margin: 14px 0 6px; font-size: 14px; }
+  .output-content strong { font-weight: 700; }
+  .output-content ul, .output-content ol { padding-left: 18px; margin: 4px 0 8px; }
+  .output-content li { margin-bottom: 3px; }
+
+  /* Loading */
+  .loading-wrap { display: none; flex-direction: column; align-items: center; justify-content: center; height: 300px; gap: 16px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #3b82d4; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: #57606a; }
+
+  /* Token info */
+  .token-info { font-size: 11px; color: #8b949e; text-align: right; padding: 4px 0; }
+
+  /* Karute panel */
+  .karute-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .karute-title { font-size: 12px; font-weight: 700; color: #57606a; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 10px; }
+  .karute-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f0f2f5; }
+  .karute-item:last-child { border-bottom: none; }
+  .karute-key { color: #57606a; }
+  .karute-val { color: #1f2328; font-weight: 600; }
+  .history-item { font-size: 11px; color: #57606a; padding: 3px 0 3px 12px; position: relative; border-bottom: 1px solid #f0f2f5; }
+  .history-item:last-child { border-bottom: none; }
+  .history-item::before { content: '·'; position: absolute; left: 2px; font-weight: 900; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <span class="topbar-logo">IBM Watsonx</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">AI Customer Success Coach</span>
+  <div class="topbar-spacer"></div>
+  <button id="btn-open-refs" style="background:#2d3748;border:1px solid #4a5568;color:#e2e8f0;border-radius:5px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    参照情報管理
+  </button>
+  <div class="topbar-sep"></div>
+  <div class="topbar-status">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">接続確認中...</span>
+  </div>
+</div>
+
+<!-- 参照情報管理パネル（オーバーレイ） -->
+<div id="refs-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;"></div>
+<div id="refs-panel" style="display:none;position:fixed;top:0;right:0;width:520px;height:100vh;background:#fff;border-left:1px solid #e5e7eb;z-index:201;display:flex;flex-direction:column;overflow:hidden;">
+  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;color:#1f2328;">参照情報管理</div>
+      <div style="font-size:11px;color:#57606a;">登録した事例・URLは全顧客・全モードの分析に自動反映されます</div>
+    </div>
+    <button id="btn-close-refs" style="background:none;border:none;font-size:18px;color:#57606a;cursor:pointer;padding:4px;">✕</button>
+  </div>
+
+  <!-- 登録フォーム -->
+  <div style="padding:14px 20px;border-bottom:1px solid #e5e7eb;background:#f7f8fa;flex-shrink:0;">
+    <div style="font-size:11px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">新規登録</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">タイトル <span style="color:#ef4444;">*</span></div>
+        <input id="new-ref-title" type="text" placeholder="例：A社 Watsonx.ai導入事例" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">種別</div>
+        <select id="new-ref-type" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;background:#fff;">
+          <option value="ibm_case">IBM公式事例</option>
+          <option value="bp_case">BP実績</option>
+          <option value="partner_case">パートナー事例</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:600;margin-bottom:3px;">内容 <span style="color:#ef4444;">*</span></div>
+      <textarea id="new-ref-summary" rows="3" placeholder="事例の要点・数値・成功ポイントなど" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;resize:vertical;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">関連製品（カンマ区切り）</div>
+        <input id="new-ref-products" type="text" placeholder="例：Watsonx.ai, IBM MAAS360" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">業界</div>
+        <input id="new-ref-industry" type="text" placeholder="例：製造業" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:600;margin-bottom:3px;">参照URL（任意）</div>
+      <input id="new-ref-url" type="text" placeholder="https://..." style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+    </div>
+    <button id="btn-add-ref" style="background:#3b82d4;color:#fff;border:none;border-radius:5px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;width:100%;">追加する</button>
+    <div id="ref-add-msg" style="font-size:11px;margin-top:6px;display:none;"></div>
+  </div>
+
+  <!-- 登録済み一覧 -->
+  <div style="flex:1;overflow-y:auto;padding:14px 20px;">
+    <div style="font-size:11px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">登録済み一覧</div>
+    <div id="refs-list"></div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ===== LEFT ===== -->
+  <div class="left">
+
+    <!-- ICN -->
+    <div class="icn-banner">
+      <div class="icn-label">
+        IBM Customer Number（ICN）
+        <span class="future-tag">将来：ISC自動連携予定</span>
+      </div>
+      <div class="icn-row">
+        <input type="text" class="icn-input" id="icn-input" placeholder="例：1234567" maxlength="10">
+        <button class="btn-icn-load" id="btn-icn-load">カルテ読込</button>
+      </div>
+      <div class="icn-hint">ICN入力→カルテ読込で前回情報を自動セット</div>
+      <div class="karute-loaded" id="karute-loaded">✓ カルテ読込完了</div>
+      <!-- 製品セレクター（複数製品時に表示） -->
+      <div class="product-selector" id="product-selector">
+        <div class="product-selector-label">対象製品を選択してください</div>
+        <div class="product-chips" id="product-chips"></div>
+        <div class="product-chip-hint">選択するとライセンス数・契約日が自動セットされます</div>
+      </div>
+    </div>
+
+    <!-- Demo Loader -->
+    <div class="mode-selector" id="demo-loader">
+      <div class="mode-label">🎬 デモデータ読込</div>
+      <div class="mode-tabs">
+        <div class="mode-tab" id="demo-a" style="border-color:#3b82d4;">
+          <div class="mode-icon">🏭</div>
+          <div class="mode-name">A社（製造業）</div>
+          <div class="mode-desc">オンボーディング</div>
+        </div>
+        <div class="mode-tab" id="demo-b" style="border-color:#7c5cd8;">
+          <div class="mode-icon">🏦</div>
+          <div class="mode-name">B社（金融）</div>
+          <div class="mode-desc">Next Best Action</div>
+        </div>
+        <div class="mode-tab" id="demo-c" style="border-color:#059669;">
+          <div class="mode-icon">🛒</div>
+          <div class="mode-name">C社（流通）</div>
+          <div class="mode-desc">QBR準備</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#8b949e;margin-top:6px;">クリックでフォームに架空顧客データを自動入力します</div>
+    </div>
+
+    <!-- Mode Selector -->
+    <div class="mode-selector">
+      <div class="mode-label">モードを選択</div>
+      <div class="mode-tabs">
+        <div class="mode-tab active-onboard" id="tab-onboard" data-mode="onboarding">
+          <div class="mode-icon">🚀</div>
+          <div class="mode-name">オンボーディング</div>
+          <div class="mode-desc">進捗診断・リスク検知</div>
+        </div>
+        <div class="mode-tab" id="tab-nba" data-mode="nba">
+          <div class="mode-icon">🎯</div>
+          <div class="mode-name">Next Best Action</div>
+          <div class="mode-desc">優先アクション提案</div>
+        </div>
+        <div class="mode-tab" id="tab-qbr" data-mode="qbr">
+          <div class="mode-icon">📊</div>
+          <div class="mode-name">QBR 準備</div>
+          <div class="mode-desc">資料ドラフト生成</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONBOARDING FORM -->
+    <div id="form-onboard">
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-blue"></div><span class="form-card-title">顧客基本情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">会社名 <span class="req-mark">*</span></label>
+              <input type="text" class="future-f" id="ob-company" placeholder="ICN連携後に自動入力">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来ISC自動入力予定</div>
+            </div>
+            <div class="field">
+              <label class="field-label">業界 <span class="req-mark">*</span></label>
+              <select id="ob-industry">
+                <option value="">選択</option>
+                <option>製造業</option><option>金融・保険</option><option>流通・小売</option>
+                <option>医療・ヘルスケア</option><option>公共・自治体</option><option>IT・通信</option>
+                <option>エネルギー・インフラ</option><option>その他</option>
+              </select>
+            </div>
+          </div>
+          <!-- Focus Product datalist（共通） -->
+          <datalist id="focus-products-list"></datalist>
+
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">契約製品 <span class="req-mark">*</span></label>
+              <input type="text" class="future-f" id="ob-products" list="focus-products-list" placeholder="例：watsonx.data">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来ISC自動入力予定</div>
+            </div>
+            <div class="field">
+              <label class="field-label">ライセンス数 <span class="req-mark">*</span></label>
+              <input type="number" class="future-f" id="ob-license" placeholder="自動入力予定">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来ISC自動入力予定</div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">導入フェーズ <span class="req-mark">*</span></label>
+            <div class="toggle-group" id="ob-phase">
+              <div class="toggle-btn sel-blue">導入前</div>
+              <div class="toggle-btn">導入直後</div>
+              <div class="toggle-btn">安定運用</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-orange"></div><span class="form-card-title">BP・関与者情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field">
+            <label class="field-label">BPの有無 <span class="req-mark">*</span></label>
+            <div class="toggle-group" id="ob-bp-exist">
+              <div class="toggle-btn sel-orange" data-val="unknown">不明</div>
+              <div class="toggle-btn" data-val="yes">あり</div>
+              <div class="toggle-btn" data-val="no">なし</div>
+            </div>
+            <div class="bp-alert show" id="ob-bp-alert" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;">
+              <span>⚠</span><div>BP不明の場合、<strong>BP確認がCSMの最初のアクション</strong>になります</div>
+            </div>
+          </div>
+          <div id="ob-bp-detail" class="hidden">
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">BP名</label>
+                <input type="text" class="future-f" id="ob-bp-name" placeholder="将来ISC自動入力予定">
+              </div>
+              <div class="field">
+                <label class="field-label">BP経験レベル <span class="req-mark">*</span></label>
+                <select id="ob-bp-exp">
+                  <option value="">選択</option>
+                  <option value="経験豊富（3年以上）">経験豊富（3年以上）</option>
+                  <option value="経験浅い（3年未満）">経験浅い（3年未満）</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label">BPと顧客との関係性</label>
+              <textarea id="ob-bp-rel" placeholder="既存取引・関係年数・アクセス範囲など"></textarea>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">IBM-Cの関与</label>
+              <div class="toggle-group" id="ob-ibmc"><div class="toggle-btn sel-blue">なし</div><div class="toggle-btn">あり（検討中）</div><div class="toggle-btn">あり（参画中）</div></div>
+            </div>
+            <div class="field">
+              <label class="field-label">TELの関与</label>
+              <div class="toggle-group" id="ob-tel"><div class="toggle-btn sel-blue">なし</div><div class="toggle-btn">あり</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-blue"></div><span class="form-card-title">利用状況</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">登録ユーザー数 <span class="req-mark">*</span></label>
+              <input type="number" id="ob-users" placeholder="例：20">
+            </div>
+            <div class="field">
+              <label class="field-label">アクティブ数（30日）</label>
+              <input type="number" id="ob-active" placeholder="例：8">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">ユースケース実装状況 <span class="req-mark">*</span></label>
+            <div class="toggle-group" id="ob-uc"><div class="toggle-btn">未着手</div><div class="toggle-btn sel-blue">一部実装</div><div class="toggle-btn">完了</div></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">チケット件数</label>
+              <input type="number" class="future-f" id="ob-tickets" placeholder="将来自動入力">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来ISC自動入力予定</div>
+            </div>
+            <div class="field">
+              <label class="field-label">NPS / CSAT</label>
+              <input type="text" id="ob-nps" placeholder="例：NPS +20 / 未回収">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header"><div class="hdr-dot d-gray"></div><span class="form-card-title">活動履歴・文脈</span><span class="badge-opt">任意</span></div>
+        <div class="form-card-body">
+          <div class="field"><label class="field-label">議事録サマリー</label><textarea id="ob-notes" placeholder="要点のみでOK"></textarea></div>
+          <div class="field"><label class="field-label">顧客の懸念</label><textarea id="ob-concerns" placeholder="顧客から挙がっている課題・懸念"></textarea></div>
+          <div class="field"><label class="field-label">類似事例</label><textarea id="ob-cases" placeholder="業種・規模・成果を自由記述"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NBA / QBR forms (simplified) -->
+    <div id="form-nba" class="hidden">
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-purple"></div><span class="form-card-title">顧客基本情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">会社名 <span class="req-mark">*</span></label><input type="text" class="future-f" id="nba-company" placeholder="ICN連携後自動入力"></div>
+            <div class="field"><label class="field-label">業界 <span class="req-mark">*</span></label><select id="nba-industry"><option value="">選択</option><option>製造業</option><option>金融・保険</option><option>流通・小売</option><option>医療・ヘルスケア</option><option>IT・通信</option><option>その他</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">契約製品 <span class="req-mark">*</span></label><input type="text" class="future-f" id="nba-products" list="focus-products-list" placeholder="例：Instana"></div>
+            <div class="field"><label class="field-label">契約更新日 <span class="req-mark">*</span></label><input type="date" class="future-f" id="nba-renewal"></div>
+          </div>
+          <div class="field"><label class="field-label">導入フェーズ</label><div class="toggle-group" id="nba-phase"><div class="toggle-btn">導入直後</div><div class="toggle-btn sel-purple">安定運用</div></div></div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-orange"></div><span class="form-card-title">BP・関与者情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">BP名</label><input type="text" class="future-f" id="nba-bp-name" placeholder="将来ISC自動入力予定"></div>
+            <div class="field"><label class="field-label">BP経験レベル</label><select id="nba-bp-exp"><option value="">選択</option><option value="経験豊富（3年以上）">経験豊富（3年以上）</option><option value="経験浅い（3年未満）">経験浅い（3年未満）</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">IBM-Cの関与</label><div class="toggle-group" id="nba-ibmc"><div class="toggle-btn sel-purple">なし</div><div class="toggle-btn">あり</div></div></div>
+            <div class="field"><label class="field-label">TELの関与</label><div class="toggle-group" id="nba-tel"><div class="toggle-btn">なし</div><div class="toggle-btn sel-purple">あり</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-purple"></div><span class="form-card-title">健全性指標</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">アクティブユーザー率 <span class="req-mark">*</span></label><input type="text" id="nba-active" placeholder="例：52%"></div>
+            <div class="field"><label class="field-label">前回コンタクトから</label><input type="text" id="nba-days" placeholder="例：21日前"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">NPS / CSAT</label><input type="text" id="nba-nps" placeholder="例：NPS -15"></div>
+            <div class="field"><label class="field-label">チケット傾向</label><select id="nba-ticket"><option>増加傾向</option><option>横ばい</option><option>減少傾向</option><option>ほぼなし</option></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header"><div class="hdr-dot d-gray"></div><span class="form-card-title">リスク・機会シグナル</span><span class="badge-opt">任意</span></div>
+        <div class="form-card-body">
+          <div class="field"><label class="field-label">顧客の懸念・不満</label><textarea id="nba-risk" placeholder="例：コスト対効果への疑問。競合比較中。"></textarea></div>
+          <div class="field"><label class="field-label">競合状況</label><textarea id="nba-competitor" placeholder="例：VMware Workspace ONEを評価中"></textarea></div>
+          <div class="field"><label class="field-label">アップセル兆候</label><textarea id="nba-upsell" placeholder="例：SIEM連携の可能性を打診された"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="form-qbr" class="hidden">
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-green"></div><span class="form-card-title">QBR基本情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">会社名 <span class="req-mark">*</span></label><input type="text" class="future-f" id="qbr-company" placeholder="ICN連携後自動入力"></div>
+            <div class="field"><label class="field-label">対象期間 <span class="req-mark">*</span></label><input type="text" id="qbr-period" placeholder="例：2025年Q1"></div>
+          </div>
+          <div class="field">
+            <label class="field-label">契約製品 <span class="req-mark">*</span></label>
+            <input type="text" class="future-f" id="qbr-products" list="focus-products-list" placeholder="例：Maximo">
+            <div class="isc-hint"><div class="isc-dot-sm"></div>将来ISC自動入力予定</div>
+          </div>
+          <div class="field"><label class="field-label">顧客KPI・成功指標 <span class="req-mark">*</span></label><textarea id="qbr-kpis" placeholder="顧客自身の言葉で記入"></textarea></div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-orange"></div><span class="form-card-title">BP・関与者情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">BP名</label><input type="text" class="future-f" id="qbr-bp-name" placeholder="将来ISC自動入力予定"></div>
+            <div class="field"><label class="field-label">BP経験レベル</label><select id="qbr-bp-exp"><option value="">選択</option><option value="経験豊富（3年以上）">経験豊富（3年以上）</option><option value="経験浅い（3年未満）">経験浅い（3年未満）</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">IBM-Cの関与</label><div class="toggle-group" id="qbr-ibmc"><div class="toggle-btn sel-green">なし</div><div class="toggle-btn">あり</div></div></div>
+            <div class="field"><label class="field-label">TELの関与</label><div class="toggle-group" id="qbr-tel"><div class="toggle-btn sel-green">なし</div><div class="toggle-btn">あり</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-green"></div><span class="form-card-title">今期の実績</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">アクティブユーザー率 <span class="req-mark">*</span></label><input type="text" id="qbr-active" placeholder="例：78%"></div>
+            <div class="field"><label class="field-label">NPS / CSAT</label><input type="text" id="qbr-nps" placeholder="例：NPS +42"></div>
+          </div>
+          <div class="field"><label class="field-label">その他定量実績</label><textarea id="qbr-metrics" placeholder="例：処理時間28%短縮。欠品率3.2%。"></textarea></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header"><div class="hdr-dot d-gray"></div><span class="form-card-title">前回QBR・次期目標</span><span class="badge-opt">任意</span></div>
+        <div class="form-card-body">
+          <div class="field"><label class="field-label">前回アクションと達成状況</label><textarea id="qbr-prev" placeholder="例：①返品管理→未着手 ②トレーニング→完了"></textarea></div>
+          <div class="field"><label class="field-label">次期ビジネス目標 <span class="req-mark">*</span></label><textarea id="qbr-goal" placeholder="例：夏季繁忙期の在庫精度向上。越境EC展開計画中。"></textarea></div>
+          <div class="field"><label class="field-label">提案したい追加製品</label><textarea id="qbr-upsell" placeholder="例：返品管理モジュール・AI需要予測オプション"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-area">
+      <div class="submit-hint">必須項目を入力してAIに送信してください</div>
+      <button class="btn-clear" id="btn-clear">クリア</button>
+      <button class="btn-submit" id="btn-submit">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+        AIに送信
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ===== RIGHT ===== -->
+  <div class="right">
+
+    <!-- Output Header -->
+    <div class="output-header">
+      <div class="output-header-title">AI Coach — 診断結果</div>
+      <span class="risk-badge risk-unknown" id="risk-badge">—</span>
+      <button class="btn-copy" id="btn-copy">コピー</button>
+    </div>
+
+    <!-- Output Body -->
+    <div class="output-body" id="output-body">
+      <div class="output-placeholder" id="output-placeholder">
+        <div class="output-placeholder-icon">🤖</div>
+        <div>左のフォームに顧客情報を入力してAIに送信してください</div>
+        <div style="font-size:12px;color:#c0c8d0;">診断結果・アクション提案・メール文面が生成されます</div>
+      </div>
+      <div class="loading-wrap" id="loading-wrap">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Watsonx.ai に送信中...</div>
+      </div>
+      <div class="output-content hidden" id="output-content"></div>
+    </div>
+
+    <div class="token-info hidden" id="token-info"></div>
+
+    <!-- Karute Panel -->
+    <div class="karute-panel" id="karute-panel" style="display:none;">
+      <div class="karute-title">顧客カルテ</div>
+      <div id="karute-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:3000/api';
+let currentMode = 'onboarding';
+let currentKarute = null;
+
+// ---------------------------------------------------------------
+// Demo customers data
+// ---------------------------------------------------------------
+const DEMO_CUSTOMERS = {
+  'demo-a': {
+    mode: 'onboarding',
+    data: {
+      company_name: 'A社（自動車部品メーカー）', industry: '製造業',
+      products: 'Watsonx.ai', license_count: '50',
+      registered_users: '20', active_users: '8', nps_score: '未回収',
+      meeting_notes: '先週のキックオフで管理者設定完了。現場エンジニア3名がトレーニング参加。他部門への展開が止まっている。担当者「操作が難しい」。',
+      customer_concerns: 'ツールの操作習熟に時間がかかる。現場の抵抗感が強い。',
+      success_cases: '同業B社で同製品導入。6ヶ月でレポート作成工数35%削減。現場リーダーを巻き込んだハンズオントレーニングが成功の鍵。',
+      phase: '導入直後', usecase_status: '一部実装', ibm_c_involved: 'なし', tel_involved: 'なし', bp_exist: 'unknown'
+    }
+  },
+  'demo-b': {
+    mode: 'nba',
+    data: {
+      company_name: 'B社（地方銀行）', industry: '金融・保険',
+      products: 'IBM MAAS360', renewal_date: '2025-09-30',
+      active_rate: '52%（156/300名）', nps_score: 'NPS -15（前回+10から急落）',
+      days_since_contact: '21日前', bp_name: 'XX商事', bp_experience: '経験浅い（3年未満）',
+      bp_relationship: '既存のPC調達取引あり。エグゼクティブへのアクセスは限定的',
+      risk_signals: 'コスト対効果への疑問。他社SaaS製品を比較検討中（競合：VMware Workspace ONE）。予算見直し時期と重なっている。',
+      competitor_info: 'VMware Workspace ONEを3ヶ月前から評価中。IT部門内の一部メンバーが推薦。',
+      upsell_signals: 'セキュリティインシデント対応強化に関心あり。SIEM連携の可能性を打診された。',
+      meeting_notes: '先月の定例では担当者の返答が短く積極的な質問がなかった。エグゼクティブとの接点は6ヶ月以上なし。',
+      phase: '安定運用', ticket_trend: '増加傾向', ibm_c_involved: 'なし', tel_involved: 'あり'
+    }
+  },
+  'demo-c': {
+    mode: 'qbr',
+    data: {
+      company_name: 'C社（大手スーパーマーケットチェーン）', review_period: '2025年Q1（1月〜3月）',
+      products: 'IBM Sterling Order Management',
+      customer_kpis: '①注文処理リードタイムを30%短縮\n②欠品率を現状5%から2%以下に削減\n③カスタマーサポート問い合わせ件数を月500件から300件以下に削減',
+      active_rate: '78%（390/500名）', nps_score: 'NPS +42（前四半期+28から上昇）',
+      other_metrics: '注文処理リードタイム：前年比28%短縮（目標30%まであと少し）。欠品率：3.2%（目標2%には未達）。在庫同期精度：99.1%達成。',
+      bp_name: 'YYソリューションズ', bp_experience: '経験豊富（3年以上）',
+      bp_relationship: '3年前からの取引。現場責任者・経営層とも良好な関係を構築済み',
+      prev_actions: '①返品管理モジュールの導入検討→未着手（予算承認待ち）\n②物流チームへの追加トレーニング→完了（3月に2回実施・50名参加）\n③AI需要予測機能のPoC開始→完了（15%の予測精度向上を確認）',
+      next_biz_goal: '夏季繁忙期（7〜8月）に向けた在庫精度向上。2026年度中に東南アジア2カ国への越境EC展開計画中。',
+      upsell_options: '①返品管理モジュールの正式導入（PoC効果実証済み）\n②AI需要予測オプションの本番適用\n③越境EC対応のグローバル拡張ライセンス',
+      ibm_c_involved: 'あり', tel_involved: 'あり'
+    }
+  }
+};
+
+function setToggleByText(groupId, text) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const modeColors = { onboarding: 'sel-blue', nba: 'sel-purple', qbr: 'sel-green' };
+  group.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.classList.remove('sel-blue','sel-purple','sel-green','sel-orange');
+    if (btn.textContent.trim().startsWith(text)) {
+      btn.classList.add(modeColors[currentMode] || 'sel-blue');
+    }
+  });
+}
+
+function loadDemoData(demoId) {
+  const demo = DEMO_CUSTOMERS[demoId];
+  if (!demo) return;
+
+  // Switch mode
+  const modeTabMap = { onboarding: 'tab-onboard', nba: 'tab-nba', qbr: 'tab-qbr' };
+  document.getElementById(modeTabMap[demo.mode]).click();
+
+  const d = demo.data;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; };
+
+  if (demo.mode === 'onboarding') {
+    set('ob-company', d.company_name); set('ob-products', d.products);
+    set('ob-license', d.license_count); set('ob-users', d.registered_users);
+    set('ob-active', d.active_users); set('ob-nps', d.nps_score);
+    set('ob-notes', d.meeting_notes); set('ob-concerns', d.customer_concerns);
+    set('ob-cases', d.success_cases);
+    // industry select
+    const indEl = document.getElementById('ob-industry');
+    if (indEl) [...indEl.options].forEach(o => { if (o.text.startsWith('製造')) indEl.value = o.value; });
+    // BP: 不明 → click unknown
+    const bpUnknownBtn = document.querySelector('#ob-bp-exist [data-val="unknown"]');
+    if (bpUnknownBtn) bpUnknownBtn.click();
+    setToggleByText('ob-phase', '導入直後');
+    setToggleByText('ob-uc', '一部実装');
+    setToggleByText('ob-ibmc', 'なし');
+    setToggleByText('ob-tel', 'なし');
+  }
+
+  if (demo.mode === 'nba') {
+    set('nba-company', d.company_name); set('nba-products', d.products);
+    set('nba-renewal', d.renewal_date); set('nba-active', d.active_rate);
+    set('nba-nps', d.nps_score); set('nba-days', d.days_since_contact);
+    set('nba-bp-name', d.bp_name); set('nba-risk', d.risk_signals);
+    set('nba-competitor', d.competitor_info); set('nba-upsell', d.upsell_signals);
+    const bpExpEl = document.getElementById('nba-bp-exp');
+    if (bpExpEl) bpExpEl.value = d.bp_experience;
+    const tickEl = document.getElementById('nba-ticket');
+    if (tickEl) tickEl.value = d.ticket_trend;
+    // industry
+    const indEl = document.getElementById('nba-industry');
+    if (indEl) [...indEl.options].forEach(o => { if (o.text.startsWith('金融')) indEl.value = o.value; });
+    setToggleByText('nba-phase', '安定運用');
+    setToggleByText('nba-ibmc', 'なし');
+    setToggleByText('nba-tel', 'あり');
+  }
+
+  if (demo.mode === 'qbr') {
+    set('qbr-company', d.company_name); set('qbr-period', d.review_period);
+    set('qbr-kpis', d.customer_kpis); set('qbr-active', d.active_rate);
+    set('qbr-nps', d.nps_score); set('qbr-metrics', d.other_metrics);
+    set('qbr-bp-name', d.bp_name); set('qbr-prev', d.prev_actions);
+    set('qbr-goal', d.next_biz_goal); set('qbr-upsell', d.upsell_options);
+    const bpExpEl = document.getElementById('qbr-bp-exp');
+    if (bpExpEl) bpExpEl.value = d.bp_experience;
+    setToggleByText('qbr-ibmc', 'あり');
+    setToggleByText('qbr-tel', 'あり');
+  }
+}
+
+document.getElementById('demo-a').addEventListener('click', () => loadDemoData('demo-a'));
+document.getElementById('demo-b').addEventListener('click', () => loadDemoData('demo-b'));
+document.getElementById('demo-c').addEventListener('click', () => loadDemoData('demo-c'));
+
+// ---------------------------------------------------------------
+// Mode switching
+// ---------------------------------------------------------------
+document.querySelectorAll('.mode-tab[data-mode]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab[data-mode]').forEach(t => t.classList.remove('active-onboard','active-nba','active-qbr'));
+    ['form-onboard','form-nba','form-qbr'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    currentMode = tab.dataset.mode;
+    const cls = { onboarding: 'active-onboard', nba: 'active-nba', qbr: 'active-qbr' }[currentMode];
+    tab.classList.add(cls);
+    document.getElementById(`form-${currentMode === 'onboarding' ? 'onboard' : currentMode}`).classList.remove('hidden');
+    const colors = { onboarding: '#3b82d4', nba: '#7c5cd8', qbr: '#059669' };
+    document.getElementById('btn-submit').style.background = colors[currentMode];
+  });
+});
+
+// ---------------------------------------------------------------
+// Toggle groups
+// ---------------------------------------------------------------
+document.querySelectorAll('.toggle-group').forEach(group => {
+  group.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cls = { onboarding: 'sel-blue', nba: 'sel-purple', qbr: 'sel-green' }[currentMode] || 'sel-blue';
+      // handle BP exist specially
+      if (group.id === 'ob-bp-exist') {
+        group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('sel-blue','sel-orange'));
+        btn.classList.add(btn.dataset.val === 'unknown' ? 'sel-orange' : 'sel-blue');
+        const alert  = document.getElementById('ob-bp-alert');
+        const detail = document.getElementById('ob-bp-detail');
+        if (btn.dataset.val === 'unknown') { alert.classList.add('show'); detail.classList.add('hidden'); }
+        else if (btn.dataset.val === 'yes') { alert.classList.remove('show'); detail.classList.remove('hidden'); }
+        else { alert.classList.remove('show'); detail.classList.add('hidden'); }
+        return;
+      }
+      group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('sel-blue','sel-purple','sel-green','sel-orange'));
+      btn.classList.add(cls);
+    });
+  });
+});
+
+// ---------------------------------------------------------------
+// ICN load
+// ---------------------------------------------------------------
+document.getElementById('btn-icn-load').addEventListener('click', async () => {
+  const icn = document.getElementById('icn-input').value.trim();
+  if (!icn) return;
+  try {
+    const res = await fetch(`${API}/karute/${icn}`);
+    if (!res.ok) { alert('カルテが見つかりませんでした。新規として作成されます。'); return; }
+    const k = await res.json();
+    currentKarute = k;
+
+    // 会社名を全フォームにセット
+    if (k.company_name && k.company_name !== '（未入力）') {
+      ['ob-company','nba-company','qbr-company'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = k.company_name;
+      });
+    }
+
+    // 契約製品の処理：contracted_products配列 or 従来のproducts文字列
+    const contractedProducts = k.contracted_products; // 新形式: [{name, license_count, contract_start_date, renewal_date}, ...]
+    if (contractedProducts && contractedProducts.length > 0) {
+      if (contractedProducts.length === 1) {
+        // 1製品のみ → 直接セット
+        applyProductToForm(contractedProducts[0]);
+        document.getElementById('product-selector').style.display = 'none';
+      } else {
+        // 複数製品 → セレクター表示
+        showProductSelector(contractedProducts);
+      }
+    } else if (k.products && k.products !== '（未入力）') {
+      // 旧形式フォールバック（文字列）
+      ['ob-products','nba-products','qbr-products'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = k.products;
+      });
+    }
+
+    showKarutePanel(k);
+    document.getElementById('karute-loaded').style.display = 'block';
+  } catch(e) { alert('サーバーに接続できませんでした。'); }
+});
+
+// 製品セレクターを表示
+function showProductSelector(products) {
+  const selector = document.getElementById('product-selector');
+  const chips    = document.getElementById('product-chips');
+  selector.style.display = 'block';
+  chips.innerHTML = products.map(p => `
+    <div class="product-chip" data-product='${JSON.stringify(p)}'>${p.name}</div>
+  `).join('');
+  chips.querySelectorAll('.product-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chips.querySelectorAll('.product-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      applyProductToForm(JSON.parse(chip.dataset.product));
+    });
+  });
+}
+
+// 選択した製品情報をフォームにセット
+function applyProductToForm(p) {
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  // 全モードの製品欄にセット
+  set('ob-products',  p.name);
+  set('nba-products', p.name);
+  set('qbr-products', p.name);
+  // モード別の追加フィールド
+  if (p.license_count)        { set('ob-license', p.license_count); }
+  if (p.contract_start_date)  { set('ob-contract-start', p.contract_start_date); }
+  if (p.renewal_date)         { set('nba-renewal', p.renewal_date); }
+}
+
+function showKarutePanel(k) {
+  const panel = document.getElementById('karute-panel');
+  const content = document.getElementById('karute-content');
+  panel.style.display = 'block';
+  // 契約製品の表示（新形式・旧形式両対応）
+  let productsDisplay = '';
+  if (k.contracted_products && k.contracted_products.length > 0) {
+    productsDisplay = k.contracted_products.map(p => p.name).join('、');
+  } else if (k.products && k.products !== '（未入力）') {
+    productsDisplay = k.products;
+  } else {
+    productsDisplay = '（未登録）';
+  }
+
+  let html = `
+    <div class="karute-item"><span class="karute-key">ICN</span><span class="karute-val">${k.icn}</span></div>
+    <div class="karute-item"><span class="karute-key">会社名</span><span class="karute-val">${k.company_name}</span></div>
+    <div class="karute-item"><span class="karute-key">契約製品</span><span class="karute-val">${productsDisplay}</span></div>
+    <div class="karute-item"><span class="karute-key">最終更新</span><span class="karute-val">${k.last_updated}</span></div>
+  `;
+  // 複数製品の場合は製品ごとのライセンス数も表示
+  if (k.contracted_products && k.contracted_products.length > 1) {
+    k.contracted_products.forEach(p => {
+      const detail = [p.license_count ? `${p.license_count}lic` : '', p.renewal_date ? `更新:${p.renewal_date}` : ''].filter(Boolean).join(' / ');
+      html += `<div class="karute-item" style="padding-left:12px;"><span class="karute-key" style="color:#3b82d4;">└ ${p.name}</span><span class="karute-val" style="font-size:11px;">${detail || '—'}</span></div>`;
+    });
+  }
+  if (k.introduced_webinars && k.introduced_webinars.length > 0) {
+    html += `<div class="karute-item"><span class="karute-key">紹介済みWebinar</span><span class="karute-val">${k.introduced_webinars.length}件</span></div>`;
+  }
+  if (k.history && k.history.length > 0) {
+    html += `<div style="margin-top:8px;font-size:11px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:.05em;">実行履歴</div>`;
+    k.history.slice(-3).reverse().forEach(h => {
+      const prod = h.product ? ` [${h.product}]` : '';
+      html += `<div class="history-item">[${h.date}]${prod} ${h.mode} — ${h.risk_level}</div>`;
+    });
+  }
+  content.innerHTML = html;
+}
+
+// ---------------------------------------------------------------
+// Collect form data
+// ---------------------------------------------------------------
+function getToggleValue(groupId) {
+  const group = document.getElementById(groupId);
+  if (!group) return '';
+  const sel = group.querySelector('.toggle-btn[class*="sel-"]');
+  return sel ? sel.textContent.trim() : '';
+}
+
+function collectFormData() {
+  const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  // 全モード共通の参照情報
+  const refs = {
+    ref_cases: v('ref-cases'),
+    ref_urls:  v('ref-urls'),
+    ref_bp:    v('ref-bp')
+  };
+  if (currentMode === 'onboarding') {
+    return {
+      company_name: v('ob-company'), industry: v('ob-industry'),
+      products: v('ob-products'), license_count: v('ob-license'),
+      phase: getToggleValue('ob-phase'),
+      registered_users: v('ob-users'), active_users: v('ob-active'),
+      usecase_status: getToggleValue('ob-uc'),
+      ticket_count: v('ob-tickets'), nps_score: v('ob-nps'),
+      bp_name: v('ob-bp-name'), bp_experience: v('ob-bp-exp'),
+      bp_relationship: v('ob-bp-rel'),
+      ibm_c_involved: getToggleValue('ob-ibmc'), tel_involved: getToggleValue('ob-tel'),
+      meeting_notes: v('ob-notes'), customer_concerns: v('ob-concerns'), success_cases: v('ob-cases'),
+      ...refs
+    };
+  }
+  if (currentMode === 'nba') {
+    return {
+      company_name: v('nba-company'), industry: v('nba-industry'),
+      products: v('nba-products'), renewal_date: v('nba-renewal'),
+      phase: getToggleValue('nba-phase'),
+      active_rate: v('nba-active'), days_since_contact: v('nba-days'),
+      nps_score: v('nba-nps'), ticket_trend: v('nba-ticket'),
+      bp_name: v('nba-bp-name'), bp_experience: v('nba-bp-exp'),
+      ibm_c_involved: getToggleValue('nba-ibmc'), tel_involved: getToggleValue('nba-tel'),
+      risk_signals: v('nba-risk'), competitor_info: v('nba-competitor'), upsell_signals: v('nba-upsell'),
+      ...refs
+    };
+  }
+  if (currentMode === 'qbr') {
+    return {
+      company_name: v('qbr-company'), review_period: v('qbr-period'),
+      products: v('qbr-products'),
+      customer_kpis: v('qbr-kpis'),
+      active_rate: v('qbr-active'), nps_score: v('qbr-nps'), other_metrics: v('qbr-metrics'),
+      bp_name: v('qbr-bp-name'), bp_experience: v('qbr-bp-exp'),
+      ibm_c_involved: getToggleValue('qbr-ibmc'), tel_involved: getToggleValue('qbr-tel'),
+      prev_actions: v('qbr-prev'), next_biz_goal: v('qbr-goal'), upsell_options: v('qbr-upsell'),
+      ...refs
+    };
+  }
+  return {};
+}
+
+// ---------------------------------------------------------------
+// Submit
+// ---------------------------------------------------------------
+document.getElementById('btn-submit').addEventListener('click', async () => {
+  const formData = collectFormData();
+  const icn = document.getElementById('icn-input').value.trim();
+
+  document.getElementById('output-placeholder').classList.add('hidden');
+  document.getElementById('output-content').classList.add('hidden');
+  document.getElementById('loading-wrap').style.display = 'flex';
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('token-info').classList.add('hidden');
+
+  const loadingMsgs = ['Watsonx.ai に送信中...', 'AIが分析しています...', '診断結果を生成中...'];
+  let msgIdx = 0;
+  const msgTimer = setInterval(() => {
+    document.getElementById('loading-text').textContent = loadingMsgs[msgIdx % loadingMsgs.length];
+    msgIdx++;
+  }, 2000);
+
+  try {
+    const res  = await fetch(`${API}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: currentMode, formData, icn: icn || null })
+    });
+    const data = await res.json();
+    clearInterval(msgTimer);
+
+    if (!res.ok) throw new Error(data.error || 'Unknown error');
+
+    // Show result
+    document.getElementById('loading-wrap').style.display = 'none';
+    const contentEl = document.getElementById('output-content');
+    contentEl.classList.remove('hidden');
+    contentEl.textContent = data.text;
+
+    // Risk badge
+    const badge = document.getElementById('risk-badge');
+    badge.textContent = data.riskLevel;
+    badge.className = 'risk-badge';
+    if (data.riskLevel === 'HIGH RISK') badge.classList.add('risk-high');
+    else if (data.riskLevel === 'MEDIUM') badge.classList.add('risk-medium');
+    else if (data.riskLevel === 'HEALTHY') badge.classList.add('risk-healthy');
+    else badge.classList.add('risk-unknown');
+
+    // Token info
+    const tokenEl = document.getElementById('token-info');
+    tokenEl.textContent = `生成トークン数: ${data.tokenCount}`;
+    tokenEl.classList.remove('hidden');
+
+    // Update karute panel if loaded
+    if (icn) {
+      try {
+        const kr = await fetch(`${API}/karute/${icn}`);
+        if (kr.ok) { const k = await kr.json(); showKarutePanel(k); }
+      } catch(e) {}
+    }
+
+  } catch (err) {
+    clearInterval(msgTimer);
+    document.getElementById('loading-wrap').style.display = 'none';
+    document.getElementById('output-placeholder').classList.remove('hidden');
+    document.getElementById('output-placeholder').innerHTML = `<div class="output-placeholder-icon">⚠️</div><div style="color:#ef4444;font-weight:700;">エラーが発生しました</div><div style="font-size:12px;color:#8b949e;">${err.message}</div>`;
+  } finally {
+    document.getElementById('btn-submit').disabled = false;
+  }
+});
+
+// ---------------------------------------------------------------
+// Clear
+// ---------------------------------------------------------------
+document.getElementById('btn-clear').addEventListener('click', () => {
+  // Clear all text inputs, selects, textareas in current form
+  const formId = { onboarding: 'form-onboard', nba: 'form-nba', qbr: 'form-qbr' }[currentMode];
+  const form = document.getElementById(formId);
+  if (form) {
+    form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], textarea').forEach(el => el.value = '');
+    form.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+  }
+  document.getElementById('icn-input').value = '';
+  document.getElementById('karute-loaded').style.display = 'none';
+  document.getElementById('karute-panel').style.display = 'none';
+  document.getElementById('output-content').classList.add('hidden');
+  document.getElementById('output-placeholder').classList.remove('hidden');
+  document.getElementById('output-placeholder').innerHTML = `<div class="output-placeholder-icon">🤖</div><div>左のフォームに顧客情報を入力してAIに送信してください</div><div style="font-size:12px;color:#c0c8d0;">診断結果・アクション提案・メール文面が生成されます</div>`;
+  document.getElementById('risk-badge').textContent = '—';
+  document.getElementById('risk-badge').className = 'risk-badge risk-unknown';
+  document.getElementById('token-info').classList.add('hidden');
+  currentKarute = null;
+});
+
+// ---------------------------------------------------------------
+// Copy
+// ---------------------------------------------------------------
+document.getElementById('btn-copy').addEventListener('click', () => {
+  const text = document.getElementById('output-content').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = 'コピー完了！';
+    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+  });
+});
+
+// ---------------------------------------------------------------
+// 参照情報管理パネル
+// ---------------------------------------------------------------
+const TYPE_LABELS = { ibm_case: 'IBM公式事例', bp_case: 'BP実績', partner_case: 'パートナー事例', other: 'その他' };
+const TYPE_COLORS = { ibm_case: '#dbeafe:#1d4ed8', bp_case: '#d1fae5:#065f46', partner_case: '#ede9fe:#6d28d9', other: '#f1f5f9:#475569' };
+
+function openRefsPanel() {
+  document.getElementById('refs-overlay').style.display = 'block';
+  document.getElementById('refs-panel').style.display   = 'flex';
+  loadRefsList();
+}
+function closeRefsPanel() {
+  document.getElementById('refs-overlay').style.display = 'none';
+  document.getElementById('refs-panel').style.display   = 'none';
+}
+document.getElementById('btn-open-refs').addEventListener('click', openRefsPanel);
+document.getElementById('btn-close-refs').addEventListener('click', closeRefsPanel);
+document.getElementById('refs-overlay').addEventListener('click', closeRefsPanel);
+
+async function loadRefsList() {
+  const list = document.getElementById('refs-list');
+  list.innerHTML = '<div style="font-size:12px;color:#8b949e;">読込中...</div>';
+  try {
+    const refs = await fetch(`${API}/references`).then(r => r.json());
+    if (refs.length === 0) {
+      list.innerHTML = '<div style="font-size:12px;color:#8b949e;">登録された参照情報はありません</div>';
+      return;
+    }
+    list.innerHTML = refs.map(r => {
+      const [bg, fg] = (TYPE_COLORS[r.type] || '#f1f5f9:#475569').split(':');
+      const label = TYPE_LABELS[r.type] || r.type;
+      return `
+        <div id="ref-card-${r.id}" style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;background:${r.enabled ? '#fff' : '#f7f8fa'};opacity:${r.enabled ? 1 : 0.55};">
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;">
+            <span style="font-size:10px;font-weight:700;background:${bg};color:${fg};border-radius:10px;padding:2px 8px;flex-shrink:0;">${label}</span>
+            <span style="font-size:12px;font-weight:700;flex:1;line-height:1.4;">${r.title}</span>
+          </div>
+          <div style="font-size:11.5px;color:#57606a;margin-bottom:6px;line-height:1.5;">${r.summary}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            ${r.industry ? `<span style="font-size:10px;background:#f1f5f9;color:#475569;border-radius:10px;padding:1px 7px;">${r.industry}</span>` : ''}
+            ${(r.products||[]).map(p => `<span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 7px;">${p}</span>`).join('')}
+            ${r.url ? `<a href="${r.url}" target="_blank" style="font-size:10px;color:#3b82d4;text-decoration:none;">🔗 URL</a>` : ''}
+            <span style="flex:1;"></span>
+            <button onclick="toggleRef('${r.id}', ${!r.enabled})" style="font-size:10px;font-weight:600;background:${r.enabled ? '#f0fdf4' : '#f7f8fa'};color:${r.enabled ? '#059669' : '#8b949e'};border:1px solid ${r.enabled ? '#bbf7d0' : '#e5e7eb'};border-radius:4px;padding:2px 8px;cursor:pointer;">${r.enabled ? '有効' : '無効'}</button>
+            <button onclick="deleteRef('${r.id}')" style="font-size:10px;font-weight:600;background:#fff5f5;color:#ef4444;border:1px solid #fecaca;border-radius:4px;padding:2px 8px;cursor:pointer;">削除</button>
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    list.innerHTML = '<div style="font-size:12px;color:#ef4444;">読込に失敗しました</div>';
+  }
+}
+
+async function toggleRef(id, enabled) {
+  await fetch(`${API}/references/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled })
+  });
+  loadRefsList();
+}
+
+async function deleteRef(id) {
+  if (!confirm('この参照情報を削除しますか？')) return;
+  await fetch(`${API}/references/${id}`, { method: 'DELETE' });
+  loadRefsList();
+}
+
+document.getElementById('btn-add-ref').addEventListener('click', async () => {
+  const title    = document.getElementById('new-ref-title').value.trim();
+  const type     = document.getElementById('new-ref-type').value;
+  const summary  = document.getElementById('new-ref-summary').value.trim();
+  const products = document.getElementById('new-ref-products').value.trim().split(',').map(s => s.trim()).filter(Boolean);
+  const industry = document.getElementById('new-ref-industry').value.trim();
+  const url      = document.getElementById('new-ref-url').value.trim();
+  const msg      = document.getElementById('ref-add-msg');
+
+  if (!title || !summary) {
+    msg.style.display = 'block';
+    msg.style.color   = '#ef4444';
+    msg.textContent   = 'タイトルと内容は必須です';
+    return;
+  }
+  try {
+    await fetch(`${API}/references`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, type, summary, products, industry, url })
+    });
+    // フォームをリセット
+    ['new-ref-title','new-ref-summary','new-ref-products','new-ref-industry','new-ref-url'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('new-ref-type').selectedIndex = 0;
+    msg.style.display = 'block';
+    msg.style.color   = '#059669';
+    msg.textContent   = '✓ 追加しました';
+    setTimeout(() => { msg.style.display = 'none'; }, 2500);
+    loadRefsList();
+  } catch(e) {
+    msg.style.display = 'block';
+    msg.style.color   = '#ef4444';
+    msg.textContent   = '追加に失敗しました';
+  }
+});
+
+// ---------------------------------------------------------------
+// Server health check
+// ---------------------------------------------------------------
+async function checkServer() {
+  try {
+    await fetch(`${API}/webinars`);
+    document.getElementById('status-dot').classList.remove('red');
+    document.getElementById('status-text').textContent = 'サーバー接続済み';
+    // Focus Product datalist を初期化
+    try {
+      const products = await fetch(`${API}/products`).then(r => r.json());
+      const dl = document.getElementById('focus-products-list');
+      if (dl) {
+        dl.innerHTML = products.map(p => `<option value="${p}">`).join('');
+      }
+    } catch(e) {}
+  } catch {
+    document.getElementById('status-dot').classList.add('red');
+    document.getElementById('status-text').textContent = 'サーバー未接続';
+  }
+}
+checkServer();
+</script>
+</body>
+</html>

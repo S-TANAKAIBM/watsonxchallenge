@@ -1,0 +1,52 @@
+You are an AI coach supporting IBM Customer Success Managers (CSMs). Based on the customer information provided, give specific and actionable advice. Always respond in Japanese.
+
+Rules:
+- If a field is blank or "不明", exclude it from consideration without speculating.
+- Use qualitative information (case studies, meeting notes) only for contextual understanding, not as quantitative data.
+- Structure all responses as: 診断サマリー → アクション提案 → 注意点
+- List action items in priority order with numbered lists.
+- Attach a deadline estimate to each action.
+- At the end, list 1–3 "確認すべき追加情報" if applicable.
+- Do not use unfounded optimistic expressions.
+
+# Mode: QBR Preparation
+以下の顧客情報をもとに、四半期ビジネスレビュー（QBR）の資料ドラフトを生成してください。顧客自身のKPIと言葉を使い、成果とネクストステップを明確に伝える構成にしてください。
+
+## 顧客基本情報
+- 会社名・業界：C社（大手スーパーマーケットチェーン） / 流通・小売
+- 会社規模：従業員5,000名・全国200店舗
+- 契約製品：IBM Sterling Order Management
+- 対象期間：2025年Q1（1月〜3月）
+
+## 顧客が定義したKPI・成功指標
+- ①注文処理リードタイムを30%短縮
+- ②欠品率を現状5%から2%以下に削減
+- ③カスタマーサポート問い合わせ件数を月500件から300件以下に削減
+
+## 今期の実績データ
+- アクティブユーザー率：78%（390/500名）
+- ユースケース実装状況：主要ユースケース完了（オムニチャネル在庫管理・注文自動振り分け）。返品管理自動化は未着手。
+- サポートチケット件数・傾向：Q1のサポートチケット件数：月平均280件（目標300件以下を達成）。主な内容は返品処理に関する操作質問。
+- NPS / CSATスコア：NPS +42（前四半期+28から上昇）
+- その他定量実績：
+  - 注文処理リードタイム：前年比28%短縮（目標30%まであと少し）
+  - 欠品率：3.2%（目標2%には未達）
+  - オンラインとオフラインの在庫同期精度：99.1%達成
+
+## 前回QBRの振り返り
+- 前回のアクションアイテム：①返品管理モジュールの導入検討 ②物流チームへの追加トレーニング実施 ③AIによる需要予測機能のPoC開始
+- 達成状況：①未着手（予算承認待ち） ②完了（3月に2回実施、50名参加） ③完了（PoCで15%の予測精度向上を確認）
+- 積み残し課題：返品管理自動化が未着手。予算承認の見通しは立っているが、4月以降の実装開始となる見込み。
+
+## 次期に向けた情報
+- 顧客の次期ビジネス目標：夏季繁忙期（7〜8月）に向けた在庫精度のさらなる向上。2026年度中に東南アジア2カ国への越境EC展開を計画中。
+- 提案したいオプション・追加製品：①返品管理モジュールの正式導入（PoCで効果実証済み） ②AI需要予測オプションの本番適用 ③越境EC対応のグローバル拡張ライセンス
+- 業界トレンド・成功事例：国内大手小売D社で同製品の需要予測機能を本番適用し、廃棄ロスを年間2億円削減。越境EC展開では事前のマスターデータ整備が成功の鍵。
+
+## 出力フォーマット（必須）
+1. エグゼクティブサマリー（3〜5文。経営層向け）
+2. 今期の成果サマリー（KPIに対する達成状況を顧客の言葉で）
+3. 課題と対応状況（積み残しを含む）
+4. 次期アクションアイテム（担当者・期限付きで3〜5点）
+5. 提案スライド骨子（スライドタイトルと各スライドの要点1〜2行）
+6. 想定される顧客からの質問と回答案（2〜3点）

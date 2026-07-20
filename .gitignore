@@ -1,0 +1,7 @@
+node_modules/
+karute/
+server/server.log
+server/server.err
+*.log
+*.err
+.env.ps1
