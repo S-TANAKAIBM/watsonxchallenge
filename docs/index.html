@@ -151,11 +151,73 @@
   <div class="topbar-sep"></div>
   <span class="topbar-title">AI Customer Success Coach</span>
   <div class="topbar-spacer"></div>
+  <button id="btn-open-refs" style="background:#2d3748;border:1px solid #4a5568;color:#e2e8f0;border-radius:5px;padding:5px 13px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    参照情報管理
+  </button>
   <span class="demo-badge">DEMO</span>
   <div class="topbar-sep"></div>
   <div class="topbar-status">
     <div class="status-dot"></div>
     <span>デモモード</span>
+  </div>
+</div>
+
+<!-- 参照情報管理パネル（オーバーレイ） -->
+<div id="refs-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;"></div>
+<div id="refs-panel" style="display:none;position:fixed;top:0;right:0;width:520px;height:100vh;background:#fff;border-left:1px solid #e5e7eb;z-index:201;flex-direction:column;overflow:hidden;">
+  <div style="padding:16px 20px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;color:#1f2328;">参照情報管理</div>
+      <div style="font-size:11px;color:#57606a;">登録した事例・URLは全顧客・全モードの分析に自動反映されます</div>
+    </div>
+    <button id="btn-close-refs" style="background:none;border:none;font-size:18px;color:#57606a;cursor:pointer;padding:4px;">✕</button>
+  </div>
+
+  <!-- 登録フォーム -->
+  <div style="padding:14px 20px;border-bottom:1px solid #e5e7eb;background:#f7f8fa;flex-shrink:0;">
+    <div style="font-size:11px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">新規登録</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">タイトル <span style="color:#ef4444;">*</span></div>
+        <input id="new-ref-title" type="text" placeholder="例：A社 watsonx.ai 導入事例" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">種別</div>
+        <select id="new-ref-type" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;background:#fff;appearance:none;">
+          <option value="ibm_case">IBM公式事例</option>
+          <option value="bp_case">BP実績</option>
+          <option value="partner_case">パートナー事例</option>
+          <option value="other">その他</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:11px;font-weight:600;margin-bottom:3px;">要約 <span style="color:#ef4444;">*</span></div>
+      <textarea id="new-ref-summary" rows="3" placeholder="事例の要点・数値・成功ポイントなど" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;resize:vertical;font-family:inherit;"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">関連製品（カンマ区切り）</div>
+        <input id="new-ref-products" type="text" placeholder="例：watsonx.ai, Instana" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">業種</div>
+        <input id="new-ref-industry" type="text" placeholder="例：製造業" style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:600;margin-bottom:3px;">参照URL（任意）</div>
+      <input id="new-ref-url" type="text" placeholder="https://..." style="width:100%;border:1px solid #d0d7de;border-radius:4px;padding:5px 8px;font-size:12px;">
+    </div>
+    <button id="btn-add-ref" style="background:#3b82d4;color:#fff;border:none;border-radius:5px;padding:7px 18px;font-size:12px;font-weight:700;cursor:pointer;width:100%;">追加する</button>
+    <div id="ref-add-msg" style="font-size:11px;margin-top:6px;display:none;"></div>
+  </div>
+
+  <!-- 登録済み一覧 -->
+  <div style="flex:1;overflow-y:auto;padding:14px 20px;">
+    <div style="font-size:11px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;">登録済み一覧</div>
+    <div id="refs-list"></div>
   </div>
 </div>
 
@@ -916,6 +978,112 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   document.getElementById('risk-badge').textContent = ' ';
   document.getElementById('risk-badge').className = 'risk-badge risk-unknown';
   document.getElementById('token-info').classList.add('hidden');
+});
+
+// ---------------------------------------------------------------
+// 参照情報管理パネル（デモ用インメモリ）
+// ---------------------------------------------------------------
+const TYPE_LABELS = { ibm_case: 'IBM公式事例', bp_case: 'BP実績', partner_case: 'パートナー事例', other: 'その他' };
+const TYPE_COLORS = {
+  ibm_case:     { bg: '#dbeafe', fg: '#1d4ed8' },
+  bp_case:      { bg: '#d1fae5', fg: '#065f46' },
+  partner_case: { bg: '#ede9fe', fg: '#6d28d9' },
+  other:        { bg: '#f1f5f9', fg: '#475569' }
+};
+
+// プリセット（references.jsonと同内容）
+let refsData = [
+  { id: 'ref-001', type: 'ibm_case',  title: 'A社（自動車部品メーカー）watsonx.ai導入事例',
+    summary: '従業員2,000名の自動車部品メーカー。watsonx.ai導入後6ヶ月でレポート作成工数35%削減。成功の鍵は現場リーダーを巻き込んだハンズオントレーニングの実施。',
+    products: ['watsonx.data'], industry: '製造業', url: '', enabled: true },
+  { id: 'ref-002', type: 'ibm_case',  title: '地銀C社 Guardium導入事例',
+    summary: '同規模地銀でGuardiumを活用し、セキュリティポリシー自動化により監査工数を年間40%削減。エグゼクティブブリーフィングを実施後に契約継続＋拡張。',
+    products: ['Guardium'], industry: '金融・保険', url: '', enabled: true },
+  { id: 'ref-003', type: 'ibm_case',  title: '大手小売D社 Maximo需要予測事例',
+    summary: '国内大手小売でMaximoの需要予測機能を本番適用し、廃棄ロスを年間2億円削減。越境EC展開では事前のマスターデータ整備が成功の鍵。',
+    products: ['Maximo'], industry: '流通・小売', url: '', enabled: true }
+];
+let refIdCounter = 4;
+
+function openRefsPanel() {
+  document.getElementById('refs-overlay').style.display = 'block';
+  const panel = document.getElementById('refs-panel');
+  panel.style.display = 'flex';
+  renderRefsList();
+}
+function closeRefsPanel() {
+  document.getElementById('refs-overlay').style.display = 'none';
+  document.getElementById('refs-panel').style.display = 'none';
+}
+document.getElementById('btn-open-refs').addEventListener('click', openRefsPanel);
+document.getElementById('btn-close-refs').addEventListener('click', closeRefsPanel);
+document.getElementById('refs-overlay').addEventListener('click', closeRefsPanel);
+
+function renderRefsList() {
+  const list = document.getElementById('refs-list');
+  if (refsData.length === 0) {
+    list.innerHTML = '<div style="font-size:12px;color:#8b949e;">登録された参照情報はありません</div>';
+    return;
+  }
+  list.innerHTML = refsData.map(r => {
+    const tc = TYPE_COLORS[r.type] || TYPE_COLORS.other;
+    const label = TYPE_LABELS[r.type] || r.type;
+    return `
+      <div id="ref-card-${r.id}" style="border:1px solid #e5e7eb;border-radius:6px;padding:10px 12px;margin-bottom:8px;background:${r.enabled ? '#fff' : '#f7f8fa'};opacity:${r.enabled ? 1 : 0.55};">
+        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px;">
+          <span style="font-size:10px;font-weight:700;background:${tc.bg};color:${tc.fg};border-radius:10px;padding:2px 8px;flex-shrink:0;">${label}</span>
+          <span style="font-size:12px;font-weight:700;flex:1;line-height:1.4;">${r.title}</span>
+        </div>
+        <div style="font-size:11.5px;color:#57606a;margin-bottom:6px;line-height:1.5;">${r.summary}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          ${r.industry ? `<span style="font-size:10px;background:#f1f5f9;color:#475569;border-radius:10px;padding:1px 7px;">${r.industry}</span>` : ''}
+          ${(r.products||[]).map(p => `<span style="font-size:10px;background:#eff6ff;color:#1d4ed8;border-radius:10px;padding:1px 7px;">${p}</span>`).join('')}
+          ${r.url ? `<a href="${r.url}" target="_blank" style="font-size:10px;color:#3b82d4;text-decoration:none;">🔗 URL</a>` : ''}
+          <span style="flex:1;"></span>
+          <button data-id="${r.id}" data-action="toggle" style="font-size:10px;font-weight:600;background:${r.enabled ? '#f0fdf4' : '#f7f8fa'};color:${r.enabled ? '#059669' : '#8b949e'};border:1px solid ${r.enabled ? '#bbf7d0' : '#e5e7eb'};border-radius:4px;padding:2px 8px;cursor:pointer;">${r.enabled ? '有効' : '無効'}</button>
+          <button data-id="${r.id}" data-action="delete" style="font-size:10px;font-weight:600;background:#fff5f5;color:#ef4444;border:1px solid #fecaca;border-radius:4px;padding:2px 8px;cursor:pointer;">削除</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  // イベント委譲
+  list.querySelectorAll('button[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'toggle') {
+        refsData = refsData.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r);
+        renderRefsList();
+      } else if (btn.dataset.action === 'delete') {
+        if (confirm('この参照情報を削除しますか？')) {
+          refsData = refsData.filter(r => r.id !== id);
+          renderRefsList();
+        }
+      }
+    });
+  });
+}
+
+document.getElementById('btn-add-ref').addEventListener('click', () => {
+  const title   = document.getElementById('new-ref-title').value.trim();
+  const type    = document.getElementById('new-ref-type').value;
+  const summary = document.getElementById('new-ref-summary').value.trim();
+  const products = document.getElementById('new-ref-products').value.trim().split(',').map(s => s.trim()).filter(Boolean);
+  const industry = document.getElementById('new-ref-industry').value.trim();
+  const url      = document.getElementById('new-ref-url').value.trim();
+  const msg      = document.getElementById('ref-add-msg');
+
+  if (!title || !summary) {
+    msg.style.display = 'block'; msg.style.color = '#ef4444';
+    msg.textContent = 'タイトルと要約は必須です';
+    return;
+  }
+  refsData.push({ id: `ref-${String(refIdCounter++).padStart(3,'0')}`, type, title, summary, products, industry, url, enabled: true });
+  ['new-ref-title','new-ref-summary','new-ref-products','new-ref-industry','new-ref-url'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('new-ref-type').selectedIndex = 0;
+  msg.style.display = 'block'; msg.style.color = '#059669';
+  msg.textContent = '✓ 追加しました';
+  setTimeout(() => { msg.style.display = 'none'; }, 2500);
+  renderRefsList();
 });
 
 // ---------------------------------------------------------------
