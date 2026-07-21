@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 13px; line-height: 1.65; color: #1f2328; background: #f0f2f5; }
+
+  .page { width: 210mm; min-height: 297mm; margin: 0 auto 28px; padding: 16mm 17mm 14mm; background: #fff; border: 1px solid #d0d7de; position: relative; page-break-after: always; }
+
+  .page-header { display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 2.5px solid #1f2328; padding-bottom: 10px; margin-bottom: 16px; }
+  .logo-line { font-size: 10px; font-weight: 700; color: #3b82d4; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 2px; }
+  .doc-title { font-size: 20px; font-weight: 800; color: #1f2328; letter-spacing: -.01em; line-height: 1.15; }
+  .doc-sub { font-size: 11.5px; color: #57606a; margin-top: 3px; }
+  .page-badge { font-size: 10px; font-weight: 700; color: #57606a; border: 1px solid #d0d7de; border-radius: 4px; padding: 3px 10px; white-space: nowrap; margin-top: 4px; }
+
+  .stitle { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; padding-left: 8px; margin-bottom: 8px; border-left: 3px solid #3b82d4; color: #3b82d4; }
+  .stitle.purple { color: #7c5cd8; border-color: #7c5cd8; }
+  .stitle.green  { color: #059669; border-color: #059669; }
+  .stitle.orange { color: #d97706; border-color: #d97706; }
+  .stitle.gray   { color: #57606a; border-color: #8b949e; }
+
+  p { font-size: 12px; margin-bottom: 6px; }
+  .lead { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  hr.light { border: none; border-top: 1px solid #e5e7eb; margin: 11px 0; }
+
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+  .card { border: 1px solid #e5e7eb; border-radius: 5px; padding: 9px 11px; background: #f7f8fa; font-size: 11.5px; }
+  .card-t { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #57606a; margin-bottom: 4px; }
+  .card.blue   { border-color: #bcd0f0; background: #f0f4ff; }
+  .card.purple { border-color: #c4b5f8; background: #f5f0ff; }
+  .card.green  { border-color: #6ee7b7; background: #f0fdf4; }
+  .card.orange { border-color: #fde68a; background: #fffbeb; }
+  .card.red    { border-color: #fecaca; background: #fff5f5; }
+
+  ul.clean { list-style: none; padding: 0; }
+  ul.clean li { padding: 2px 0 2px 13px; font-size: 11.5px; position: relative; }
+  ul.clean li::before { content: '·'; position: absolute; left: 2px; font-weight: 900; color: #3b82d4; }
+  ul.clean.purple li::before { color: #7c5cd8; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
+  th { background: #1f2328; color: #fff; padding: 5px 8px; text-align: left; font-size: 10.5px; font-weight: 600; }
+  td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; vertical-align: top; font-size: 11px; }
+  tr:nth-child(even) td { background: #f7f8fa; }
+
+  .metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 8px 0 10px; }
+  .mbox { border: 1px solid #e5e7eb; border-radius: 5px; padding: 8px 5px; text-align: center; }
+  .mnum { font-size: 20px; font-weight: 800; color: #3b82d4; line-height: 1; }
+  .mnum.purple { color: #7c5cd8; }
+  .mnum.green  { color: #059669; }
+  .mnum.orange { color: #d97706; }
+  .mlabel { font-size: 9.5px; color: #57606a; margin-top: 3px; line-height: 1.3; }
+
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 8px 0 10px; }
+  .fstep { flex: 1; border: 1px solid #e5e7eb; border-radius: 5px; padding: 7px 8px; text-align: center; font-size: 10.5px; background: #f7f8fa; }
+  .fstep.blue   { border-color: #bcd0f0; background: #f0f4ff; }
+  .fstep.purple { border-color: #c4b5f8; background: #f5f0ff; }
+  .fstep.green  { border-color: #6ee7b7; background: #f0fdf4; }
+  .fstep.orange { border-color: #fde68a; background: #fffbeb; }
+  .fnum   { font-size: 9px; font-weight: 700; color: #8b949e; margin-bottom: 2px; }
+  .ftitle { font-weight: 700; font-size: 11px; color: #1f2328; line-height: 1.3; }
+  .fsub   { font-size: 9.5px; color: #57606a; margin-top: 2px; line-height: 1.4; }
+  .farrow { display: flex; align-items: center; padding: 0 3px; color: #8b949e; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+
+  .rm-row   { display: flex; gap: 0; margin-bottom: 7px; align-items: flex-start; }
+  .rm-phase { width: 66px; flex-shrink: 0; font-size: 10px; font-weight: 700; color: #1f2328; padding-top: 5px; line-height: 1.3; }
+  .rm-phase span  { display: block; font-weight: 400; color: #8b949e; font-size: 9.5px; }
+  .rm-items { flex: 1; display: flex; gap: 5px; }
+  .rmi { flex: 1; border-radius: 4px; padding: 5px 8px; font-size: 10.5px; line-height: 1.4; }
+  .rmi strong { display: block; font-size: 10px; font-weight: 700; margin-bottom: 2px; }
+  .rmi.blue   { background: #f0f4ff; border: 1px solid #bcd0f0; color: #1d4ed8; }
+  .rmi.purple { background: #f5f0ff; border: 1px solid #c4b5f8; color: #6d28d9; }
+  .rmi.green  { background: #f0fdf4; border: 1px solid #6ee7b7; color: #065f46; }
+  .rmi.orange { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+  .rmi.gray   { background: #f7f8fa; border: 1px solid #e5e7eb; color: #475569; }
+  .rm-divider { border: none; border-top: 1px dashed #e5e7eb; margin: 4px 0 6px; }
+
+  .tag { display: inline-block; font-size: 9.5px; font-weight: 700; border-radius: 10px; padding: 1px 7px; margin: 1px; }
+  .tag-blue   { background: #dbeafe; color: #1d4ed8; }
+  .tag-purple { background: #ede9fe; color: #6d28d9; }
+  .tag-green  { background: #d1fae5; color: #065f46; }
+  .tag-orange { background: #fef3c7; color: #92400e; }
+  .tag-gray   { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
+
+  .pfooter { position: absolute; bottom: 9mm; left: 17mm; right: 17mm; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e5e7eb; padding-top: 5px; font-size: 9px; color: #8b949e; }
+  .section { margin-bottom: 12px; }
+
+  @media print {
+    body { background: #fff; }
+    .page { border: none; margin: 0; box-shadow: none; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="logo-line">IBM Watsonx Challenge 2026</div>
+      <div class="doc-title">AI Customer Success Coach</div>
+      <div class="doc-sub">IBM CSM・営業の業務効率化を実現するAIコーチングシステム</div>
+    </div>
+    <div class="page-badge">Page 1 / 3 &nbsp;·&nbsp; Solution Statement</div>
+  </div>
+
+  <div class="section">
+    <div class="stitle">取り組んでいる課題</div>
+    <p class="lead">IBM CSMはSelect Territory体制で多数の顧客を担当しており、顧客情報が複数システムに分散しているため、状況把握・アクション判断・資料作成に多大な時間を要している。</p>
+    <div class="g2">
+      <div class="card blue"><div class="card-t">情報収集・判断コスト</div>利用状況・NPS・チケット・BP情報・更新日などを毎回手動で収集・整理した上でアクションを決定。担当顧客数が多いほど個別対応の品質が低下する。</div>
+      <div class="card red"><div class="card-t">チャーンリスクの見逃し</div>健全性シグナルを定期モニタリングする時間が確保できず、競合比較中・NPS急落・更新接近などの複合シグナルを見落とすリスクがある。</div>
+    </div>
+    <div class="g2">
+      <div class="card orange"><div class="card-t">関与者連携の複雑さ</div>BP・IBM-C・TELは顧客ごとに異なり三者が揃うことはまれ。誰に何を確認・依頼すべきかをCSMが毎回ゼロから判断する必要がある。</div>
+      <div class="card purple"><div class="card-t">QBR・オンボーディング準備工数</div>高品質な成果物が求められるが、テンプレート化が進んでおらず、CSMごとに品質・工数にばらつきがある。</div>
+    </div>
+  </div>
+
+  <hr class="light">
+
+  <div class="section">
+    <div class="stitle">ターゲットユーザーと相互作用方法</div>
+    <div class="g2" style="margin-bottom:8px;">
+      <div>
+        <p><strong>現在のターゲット：IBM CSM（Customer Success Manager）</strong><br>Select Territory担当・Focus Product 20製品・多顧客を抱えるCSMが顧客接点の前後に使用する。外部システム連携なしで即日利用可能。</p>
+        <p><strong>将来のターゲット：営業（テリトリー営業・TEL・IBM-C）</strong><br>顧客のRenewal状況・拡張機会・健全性スコアを営業が把握し、アップセル提案・商談準備に活用。CSMと営業が同一AI基盤で情報を共有することで連携が強化される。</p>
+      </div>
+      <div class="card" style="font-size:11px;">
+        <div class="card-t">Select Territory Focus Products（20製品）</div>
+        <div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">
+          <span class="tag tag-blue">watsonx Orchestrate</span><span class="tag tag-blue">watsonx.governance</span><span class="tag tag-blue">watsonx Code Assistant</span><span class="tag tag-blue">watsonx.data</span><span class="tag tag-blue">watsonx.data integration</span><span class="tag tag-purple">Guardium</span><span class="tag tag-purple">Planning Analytics</span><span class="tag tag-purple">Instana</span><span class="tag tag-purple">Concert</span><span class="tag tag-green">Maximo</span><span class="tag tag-green">webMethods Hybrid Integration</span><span class="tag tag-green">PowerVS</span><span class="tag tag-orange">Terraform</span><span class="tag tag-orange">Cloudability</span><span class="tag tag-orange">Kubecost</span><span class="tag tag-gray">Vault</span><span class="tag tag-gray">Verify</span><span class="tag tag-gray">NS1</span><span class="tag tag-gray">Fusion</span><span class="tag tag-gray">Flash</span>
+        </div>
+      </div>
+    </div>
+    <div class="flow">
+      <div class="fstep blue"><div class="fnum">STEP 1</div><div class="ftitle">ICN入力・カルテ読込</div><div class="fsub">複数製品セレクターでライセンス数・更新日を自動セット</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep purple"><div class="fnum">STEP 2</div><div class="ftitle">モード選択</div><div class="fsub">オンボーディング / NBA / QBR準備</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep green"><div class="fnum">STEP 3</div><div class="ftitle">AIが診断・提案を生成</div><div class="fsub">リスク判定・優先アクション・メール文面・QBRドラフトを即時出力</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep orange"><div class="fnum">STEP 4</div><div class="ftitle">カルテ自動更新</div><div class="fsub">製品別履歴・リスク推移・紹介済みWebinarを蓄積</div></div>
+    </div>
+  </div>
+
+  <hr class="light">
+
+  <div class="section">
+    <div class="stitle">予想される結果と生産性向上</div>
+    <div class="metrics">
+      <div class="mbox"><div class="mnum">60<span style="font-size:13px">%</span></div><div class="mlabel">オンボーディング診断・アクション立案の時間削減</div></div>
+      <div class="mbox"><div class="mnum purple">70<span style="font-size:13px">%</span></div><div class="mlabel">QBR資料ドラフト作成工数の削減</div></div>
+      <div class="mbox"><div class="mnum green">早期</div><div class="mlabel">HIGH RISK / MEDIUM / HEALTHYによる構造化された早期チャーン検知</div></div>
+      <div class="mbox"><div class="mnum orange">標準化</div><div class="mlabel">CSM・営業間の情報共有基盤としてアクション品質を均一化</div></div>
+    </div>
+    <p style="font-size:11px;">BP経験レベル別・関与者別のアクション分岐をAIが自動判断。IBM公式事例・BP実績をWeb UIから登録するだけで全分析に自動反映。外部システム連携なしで今すぐ利用開始できる。</p>
+  </div>
+
+  <div class="pfooter"><span>AI Customer Success Coach — IBM Watsonx Challenge 2026</span><span>IBM Confidential</span></div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="logo-line">IBM Watsonx Challenge 2026</div>
+      <div class="doc-title">AI Customer Success Coach</div>
+      <div class="doc-sub">技術的説明 — アーキテクチャ・プロンプト設計・工数削減効果</div>
+    </div>
+    <div class="page-badge">Page 2 / 3 &nbsp;·&nbsp; Technical Description</div>
+  </div>
+
+  <div class="section">
+    <div class="stitle">IBM Bob・ICAの使用方法</div>
+    <div class="g2">
+      <div class="card blue">
+        <div class="card-t">IBM Bob — コーディング・デバッグ支援</div>
+        <ul class="clean" style="margin-top:4px;">
+          <li>Node.js + Express サーバーのスキャフォールド生成</li>
+          <li>Watsonx.ai REST API（WML v1）呼び出しコードの生成・修正</li>
+          <li>IAMトークン取得・エラーハンドリングのデバッグ</li>
+          <li>フロントエンド HTML/CSS/JS の設計と実装</li>
+          <li>PowerShell検証スクリプトの文字コード問題トラブルシュート</li>
+          <li>複数製品セレクター・参照情報管理UIの実装支援</li>
+        </ul>
+      </div>
+      <div class="card purple">
+        <div class="card-t">ICA — プロンプト設計・業務ロジック整理</div>
+        <ul class="clean purple" style="margin-top:4px;">
+          <li>Tech Touch / Human Touch 活動モデルの構造化</li>
+          <li>BP・IBM-C・TEL 関与者別アクション分岐ルールの設計</li>
+          <li>Focus Products（20製品）をプロンプトに明示・制約化</li>
+          <li>3モード（オンボーディング/NBA/QBR）プロンプト設計・チューニング</li>
+          <li>オンボーディングガイド参照情報ルール策定</li>
+          <li>思考過程抑制・出力フォーマット標準化</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <hr class="light">
+
+  <div class="section">
+    <div class="stitle purple">技術構成・プロンプトエンジニアリング</div>
+    <div class="g2">
+      <table>
+        <tr><th colspan="2">システム構成</th></tr>
+        <tr><td><strong>AIモデル</strong></td><td>meta-llama/llama-3-3-70b-instruct（jp-tok）</td></tr>
+        <tr><td><strong>API</strong></td><td>WML REST API v1 / IAMトークン認証</td></tr>
+        <tr><td><strong>パラメータ</strong></td><td>greedy / max 1,500 tokens / rep. penalty 1.1</td></tr>
+        <tr><td><strong>バックエンド</strong></td><td>Node.js + Express（外部DB・認証基盤なし）</td></tr>
+        <tr><td><strong>フロントエンド</strong></td><td>Vanilla HTML/CSS/JS（サーバー配信）</td></tr>
+        <tr><td><strong>データ管理</strong></td><td>JSONファイル（カルテ・Webinar・参照情報）</td></tr>
+      </table>
+      <table>
+        <tr><th colspan="2">プロンプト設計の主要要素</th></tr>
+        <tr><td><strong>Focus Products制約</strong></td><td>20製品のみを対象とし、それ以外を排除</td></tr>
+        <tr><td><strong>活動モデル明示</strong></td><td>Tech Touch済み行動をHuman Touchから除外</td></tr>
+        <tr><td><strong>関与者別分岐</strong></td><td>BP有無・経験・IBM-C・TELの組合せで分岐</td></tr>
+        <tr><td><strong>Webinar動的注入</strong></td><td>契約製品に合致するWebinarのみ毎回抽出</td></tr>
+        <tr><td><strong>参照情報自動注入</strong></td><td>登録済み事例・BP実績を全分析に自動反映</td></tr>
+        <tr><td><strong>出力品質制御</strong></td><td>"Do NOT output thinking steps"で品質安定化</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <hr class="light">
+
+  <div class="section">
+    <div class="stitle green">作業完了時間の削減見積もり（適用前後）</div>
+    <table>
+      <tr>
+        <th style="width:34%">業務タスク</th>
+        <th style="width:20%;text-align:center;">適用前</th>
+        <th style="width:20%;text-align:center;">適用後</th>
+        <th style="width:26%;text-align:center;">削減効果</th>
+      </tr>
+      <tr><td>オンボーディング進捗診断・アクション立案</td><td style="text-align:center;">30〜45分</td><td style="text-align:center;">10〜15分</td><td style="text-align:center;"><strong style="color:#059669;">約 60% 削減</strong></td></tr>
+      <tr><td>Next Best Action判断（複数シグナル統合）</td><td style="text-align:center;">20〜30分</td><td style="text-align:center;">8〜12分</td><td style="text-align:center;"><strong style="color:#059669;">約 60% 削減</strong></td></tr>
+      <tr><td>QBR資料ドラフト作成</td><td style="text-align:center;">90〜120分</td><td style="text-align:center;">20〜30分</td><td style="text-align:center;"><strong style="color:#059669;">約 70% 削減</strong></td></tr>
+      <tr><td>顧客への連絡メール文面作成</td><td style="text-align:center;">15〜20分</td><td style="text-align:center;">〜2分（確認のみ）</td><td style="text-align:center;"><strong style="color:#059669;">約 90% 削減</strong></td></tr>
+      <tr><td>BP・関与者別アクション判断</td><td style="text-align:center;">都度15〜20分</td><td style="text-align:center;">即時（AI自動判断）</td><td style="text-align:center;"><strong style="color:#059669;">ほぼゼロ</strong></td></tr>
+    </table>
+    <p style="font-size:10.5px;color:#57606a;margin-top:4px;">※上記は既存業務の工数ヒアリングに基づく見込み値。実績値は本番運用後に測定予定。</p>
+  </div>
+
+  <div class="pfooter"><span>AI Customer Success Coach — IBM Watsonx Challenge 2026</span><span>IBM Confidential</span></div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="logo-line">IBM Watsonx Challenge 2026</div>
+      <div class="doc-title">AI Customer Success Coach</div>
+      <div class="doc-sub">システムフロー・デモシナリオ・ロードマップ（CSM → 営業 → 全セールス組織へ）</div>
+    </div>
+    <div class="page-badge">Page 3 / 3 &nbsp;·&nbsp; Pitch File</div>
+  </div>
+
+  <div class="section">
+    <div class="stitle">システムフロー図</div>
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
+      <div style="width:52px;font-size:9.5px;font-weight:700;color:#57606a;flex-shrink:0;">INPUT</div>
+      <div class="fstep blue" style="flex:2;"><div class="ftitle">CSMがWebフォームに入力</div><div class="fsub">ICN入力→カルテ読込→複数製品セレクター→ライセンス数・更新日自動セット</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep blue" style="flex:1.2;"><div class="ftitle">モード選択</div><div class="fsub">オンボーディング / NBA / QBR</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep blue" style="flex:1.5;"><div class="ftitle">参照情報・Webinar自動読込</div><div class="fsub">登録済み事例・BP実績・Webinarリストを自動注入</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">
+      <div style="width:52px;font-size:9.5px;font-weight:700;color:#57606a;flex-shrink:0;">PROCESS</div>
+      <div class="fstep purple" style="flex:1.5;"><div class="ftitle">プロンプト動的構築</div><div class="fsub">ルール＋顧客情報＋事例＋Webinar＋フォーマットを結合</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep purple" style="flex:2;"><div class="ftitle">Watsonx.ai API呼び出し</div><div class="fsub">meta-llama/llama-3-3-70b-instruct（jp-tok）<br>IAM認証 → WML REST API</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep purple" style="flex:1.3;"><div class="ftitle">リスクレベル抽出</div><div class="fsub">HIGH RISK / MEDIUM / HEALTHYを自動検出</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+      <div style="width:52px;font-size:9.5px;font-weight:700;color:#57606a;flex-shrink:0;">OUTPUT</div>
+      <div class="fstep green" style="flex:1;"><div class="ftitle">診断結果</div><div class="fsub">リスクバッジ＋構造化テキスト</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep green" style="flex:1;"><div class="ftitle">優先アクション</div><div class="fsub">期限・BP役割分担付き</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep green" style="flex:1;"><div class="ftitle">メール/QBRドラフト</div><div class="fsub">コピーして即使用可</div></div>
+      <div class="farrow">›</div>
+      <div class="fstep green" style="flex:1;"><div class="ftitle">カルテ自動更新</div><div class="fsub">製品別履歴・リスク推移を蓄積</div></div>
+    </div>
+  </div>
+
+  <hr class="light">
+
+  <div class="section">
+    <div class="stitle orange">デモシナリオ（3社）</div>
+    <table>
+      <tr>
+        <th style="width:14%">顧客</th><th style="width:17%">製品・状況</th><th style="width:14%">モード</th><th>AIが生成する提案の焦点</th>
+      </tr>
+      <tr>
+        <td><strong>A社</strong><br><span style="color:#57606a;font-size:10px;">自動車部品メーカー</span></td>
+        <td>watsonx.data<br>導入直後・BP不明</td>
+        <td><span class="tag tag-blue">オンボーディング</span></td>
+        <td>アクティブ率40%の低迷を指摘。BP確認を最優先アクションとして提案。オンボーディングガイド（ibm.github.io/japan-technology）を参照先として提示。eNurture済みアクションは除外。</td>
+      </tr>
+      <tr>
+        <td><strong>B社</strong><br><span style="color:#57606a;font-size:10px;">地方銀行</span></td>
+        <td>Guardium<br>更新4ヶ月前・競合比較中</td>
+        <td><span class="tag tag-purple">Next Best Action</span></td>
+        <td>HIGH RISK判定（NPS急落＋競合比較＋更新接近の3条件重複）。BP経由エグゼクティブ接触を最優先に提案。TELへのRenewal情報共有を明示。IBM-C不在のため関連アクションは提案しない。</td>
+      </tr>
+      <tr>
+        <td><strong>C社</strong><br><span style="color:#57606a;font-size:10px;">大手スーパーチェーン</span></td>
+        <td>Maximo<br>NPS+42・越境EC計画</td>
+        <td><span class="tag tag-green">QBR準備</span></td>
+        <td>KPI達成状況を顧客の言葉で整理。未達項目を事実ベースで記述。BP同席・TELとのRenewal事前すり合わせを提案。越境EC展開に向けたアップセルオプションをQBRに組込。</td>
+      </tr>
+    </table>
+  </div>
+
+  <hr class="light">
+
+  <div class="section">
+    <div class="stitle gray">ロードマップ — CSM単独から組織全体へ</div>
+
+    <div class="rm-row">
+      <div class="rm-phase">Phase 1<span>現在・MVP</span></div>
+      <div class="rm-items">
+        <div class="rmi blue"><strong>CSM向けスタンドアローンWebUI</strong>テキスト入力のみで即日利用可能。外部システム連携不要。</div>
+        <div class="rmi blue"><strong>3モード・20製品対応</strong>オンボーディング / NBA / QBR。Focus Products制約・関与者別分岐。</div>
+        <div class="rmi blue"><strong>参照情報管理</strong>IBM公式事例・BP実績・URLをUIから登録し全分析に自動反映。</div>
+      </div>
+    </div>
+    <hr class="rm-divider">
+    <div class="rm-row">
+      <div class="rm-phase">Phase 2<span>短期</span></div>
+      <div class="rm-items">
+        <div class="rmi purple"><strong>営業モード追加</strong>アップセル機会検出・商談前ブリーフィング生成・Renewal確率スコアリング。TEL・IBM-C向け出力フォーマット追加。</div>
+        <div class="rmi purple"><strong>多製品プロンプト拡張</strong>各製品専用のオンボーディングガイドと診断ロジックを整備。製品ごとのベストプラクティスを自動注入。</div>
+        <div class="rmi purple"><strong>eNurture連携</strong>Tech Touch配信状況をAIが参照しHuman Touch介入判断の精度向上。</div>
+      </div>
+    </div>
+    <hr class="rm-divider">
+    <div class="rm-row">
+      <div class="rm-phase">Phase 3<span>中期</span></div>
+      <div class="rm-items">
+        <div class="rmi green"><strong>ISC連携（社内規定対応後）</strong>ISC（ibmsc.lightning.force.com）とICN連携し、顧客情報・製品・ライセンス数を自動取得。入力工数をほぼゼロに。</div>
+        <div class="rmi green"><strong>Case Viewer連携</strong>Case Viewer（w3.ibm.com/tools/caseviewer）から同製品の過去ケースをwatsonxで検索・自動参照し、類似課題への対応精度を向上。</div>
+        <div class="rmi green"><strong>健全性スコア自動モニタリング</strong>全担当顧客のリスクスコアを定期実行しHIGH RISKを自動アラート。CSM・営業共有ダッシュボード。</div>
+      </div>
+    </div>
+    <hr class="rm-divider">
+    <div class="rm-row" style="margin-bottom:0;">
+      <div class="rm-phase">Phase 4<span>長期展望</span></div>
+      <div class="rm-items">
+        <div class="rmi orange"><strong>全IBMセールス統合</strong>CSM・営業・テクニカルセールスが同一AI基盤で顧客360°ビューを共有。提案書・契約ドラフトの自動生成。</div>
+        <div class="rmi orange"><strong>社内ナレッジ横展開</strong>蓄積された対応履歴・成功事例をwatsonxでインデックス化し、全CSM・営業が検索・活用できる社内AIナレッジベースへ。</div>
+        <div class="rmi gray"><strong>他Territoryへのスケール</strong>Enterprise / Strategic Territoryへの展開。Global CSM組織との連携。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pfooter"><span>AI Customer Success Coach — IBM Watsonx Challenge 2026</span><span>IBM Confidential</span></div>
+</div>
+
+<script>window.onload = () => window.print();</script>
+</body>
+</html>

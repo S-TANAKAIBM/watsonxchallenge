@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Customer Success Coach — Demo</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 14px; line-height: 1.6; color: #1f2328; background: #f0f2f5; min-height: 100vh; }
+
+  /* Top Bar */
+  .topbar { background: #1f2328; color: #fff; padding: 0 24px; height: 52px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { font-size: 13px; font-weight: 700; color: #3b82d4; letter-spacing: .04em; }
+  .topbar-sep { width: 1px; height: 20px; background: #30363d; }
+  .topbar-title { font-size: 13px; color: #c9d1d9; font-weight: 500; }
+  .topbar-spacer { flex: 1; }
+  .topbar-status { font-size: 11px; color: #8b949e; display: flex; align-items: center; gap: 5px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #3b82d4; }
+  /* Demo badge */
+  .demo-badge { background: #7c5cd8; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; letter-spacing: .04em; }
+
+  /* Layout */
+  .main { display: flex; max-width: 1200px; width: 100%; margin: 0 auto; padding: 20px 16px; gap: 20px; }
+  .left  { width: 380px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; }
+  .right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+
+  /* Demo notice banner */
+  .demo-notice { background: #f5f0ff; border: 1px solid #c4b5fd; border-left: 4px solid #7c5cd8; border-radius: 6px; padding: 10px 14px; font-size: 12px; color: #4c1d95; line-height: 1.6; }
+  .demo-notice strong { font-weight: 700; }
+
+  /* ICN Banner */
+  .icn-banner { background: #fff; border: 1px solid #e5e7eb; border-left: 4px solid #3b82d4; border-radius: 6px; padding: 12px 14px; }
+  .icn-label { font-size: 11px; font-weight: 700; color: #3b82d4; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .future-tag { font-size: 10px; font-weight: 600; background: #f0f4ff; color: #3b82d4; border: 1px solid #d0e0f8; padding: 1px 6px; border-radius: 10px; text-transform: none; letter-spacing: 0; }
+  .icn-row { display: flex; gap: 8px; align-items: center; }
+  .icn-input { flex: 1; border: 1px solid #d0d7de; border-radius: 5px; padding: 7px 10px; font-size: 13px; font-family: "Consolas", monospace; letter-spacing: .05em; outline: none; }
+  .icn-input:focus { border-color: #3b82d4; box-shadow: 0 0 0 3px rgba(59,130,212,.12); }
+  .btn-icn-load { background: #f7f8fa; border: 1px solid #d0d7de; border-radius: 5px; padding: 7px 12px; font-size: 12px; font-weight: 600; color: #57606a; cursor: pointer; white-space: nowrap; }
+  .btn-icn-load:hover { border-color: #3b82d4; color: #3b82d4; }
+  .icn-hint { font-size: 11px; color: #8b949e; margin-top: 4px; }
+
+  /* Mode Selector */
+  .mode-selector { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .mode-label { font-size: 11px; font-weight: 600; color: #57606a; letter-spacing: .07em; text-transform: uppercase; margin-bottom: 10px; }
+  .mode-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .mode-tab { border: 1.5px solid #e5e7eb; border-radius: 6px; padding: 9px 6px; text-align: center; cursor: pointer; background: #fff; transition: all .15s; }
+  .mode-tab:hover { border-color: #3b82d4; background: #f0f4ff; }
+  .mode-tab.active-onboard { border-color: #3b82d4; background: #f0f4ff; }
+  .mode-tab.active-nba     { border-color: #7c5cd8; background: #f5f0ff; }
+  .mode-tab.active-qbr     { border-color: #059669; background: #f0fdf4; }
+  .mode-icon { font-size: 16px; margin-bottom: 3px; }
+  .mode-name { font-size: 11px; font-weight: 700; color: #1f2328; }
+  .mode-desc { font-size: 10px; color: #57606a; }
+
+  /* Form Card */
+  .form-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+  .form-card-header { padding: 10px 14px; border-bottom: 1px solid #e5e7eb; display: flex; align-items: center; gap: 7px; }
+  .hdr-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .d-blue   { background: #3b82d4; } .d-purple { background: #7c5cd8; }
+  .d-green  { background: #059669; } .d-gray   { background: #8b949e; }
+  .d-orange { background: #f59e0b; }
+  .form-card-title { font-size: 12px; font-weight: 700; flex: 1; }
+  .badge-req { margin-left: auto; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+  .badge-opt { margin-left: auto; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; background: #f7f8fa; color: #8b949e; border: 1px solid #e5e7eb; }
+  .form-card-body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+  /* Fields */
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-label { font-size: 11px; font-weight: 600; color: #1f2328; }
+  .req-mark { color: #ef4444; }
+  .field-hint { font-size: 10px; color: #8b949e; }
+  .isc-hint { font-size: 10px; color: #3b82d4; display: flex; align-items: center; gap: 4px; }
+  .isc-dot-sm { width: 5px; height: 5px; border-radius: 50%; background: #3b82d4; flex-shrink: 0; }
+  input[type="text"], input[type="date"], input[type="number"], select, textarea {
+    width: 100%; border: 1px solid #d0d7de; border-radius: 5px; padding: 6px 9px; font-size: 13px; font-family: inherit; color: #1f2328; background: #fff; outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #3b82d4; box-shadow: 0 0 0 3px rgba(59,130,212,.12); }
+  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2357606a' d='M1 1l5 5 5-5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; padding-right: 26px; }
+  input.future-f, select.future-f { border-style: dashed; border-color: #bcd0f0; background: #f8fbff; }
+  .toggle-group { display: flex; gap: 5px; flex-wrap: wrap; }
+  .toggle-btn { border: 1.5px solid #d0d7de; border-radius: 20px; padding: 3px 10px; font-size: 11px; color: #57606a; background: #fff; cursor: pointer; }
+  .toggle-btn.sel-blue   { border-color: #3b82d4; background: #f0f4ff; color: #3b82d4; font-weight: 700; }
+  .toggle-btn.sel-purple { border-color: #7c5cd8; background: #f5f0ff; color: #7c5cd8; font-weight: 700; }
+  .toggle-btn.sel-green  { border-color: #059669; background: #f0fdf4; color: #059669; font-weight: 700; }
+  .toggle-btn.sel-orange { border-color: #f59e0b; background: #fffbeb; color: #d97706; font-weight: 700; }
+  .bp-alert { display: none; border-radius: 5px; padding: 8px 12px; font-size: 11px; margin-top: 4px; gap: 6px; align-items: flex-start; }
+  .bp-alert.show { display: flex; }
+
+  /* Submit */
+  .submit-area { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+  .submit-hint { flex: 1; font-size: 11px; color: #57606a; }
+  .btn-clear  { background: #fff; color: #57606a; border: 1px solid #d0d7de; border-radius: 5px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
+  .btn-submit { background: #3b82d4; color: #fff; border: none; border-radius: 6px; padding: 9px 20px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .btn-submit:disabled { background: #93c5fd; cursor: not-allowed; }
+
+  /* Output Panel */
+  .output-header { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+  .output-header-title { font-size: 14px; font-weight: 700; flex: 1; }
+  .risk-badge { font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 20px; }
+  .risk-high    { background: #fef2f2; color: #ef4444; border: 1px solid #fecaca; }
+  .risk-medium  { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+  .risk-healthy { background: #f0fdf4; color: #059669; border: 1px solid #bbf7d0; }
+  .risk-unknown { background: #f7f8fa; color: #8b949e; border: 1px solid #e5e7eb; }
+  .btn-copy { background: #f7f8fa; border: 1px solid #d0d7de; border-radius: 5px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #57606a; cursor: pointer; }
+  .btn-copy:hover { border-color: #3b82d4; color: #3b82d4; }
+
+  .output-body {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 400px;
+    flex: 1;
+  }
+  .output-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: #8b949e; gap: 10px; text-align: center; }
+  .output-placeholder-icon { width: 48px; height: 48px; border-radius: 50%; background: #f0f4ff; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .output-content { white-space: pre-wrap; font-size: 13.5px; line-height: 1.8; color: #1f2328; }
+  .output-content h2, .output-content h3 { margin: 14px 0 6px; font-size: 14px; }
+  .output-content strong { font-weight: 700; }
+
+  /* Loading */
+  .loading-wrap { display: none; flex-direction: column; align-items: center; justify-content: center; height: 300px; gap: 16px; }
+  .spinner { width: 36px; height: 36px; border: 3px solid #e5e7eb; border-top-color: #3b82d4; border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: #57606a; }
+
+  /* Token info */
+  .token-info { font-size: 11px; color: #8b949e; text-align: right; padding: 4px 0; }
+
+  /* Karute panel */
+  .karute-panel { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; }
+  .karute-title { font-size: 12px; font-weight: 700; color: #57606a; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 10px; }
+  .karute-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid #f0f2f5; }
+  .karute-item:last-child { border-bottom: none; }
+  .karute-key { color: #57606a; }
+  .karute-val { color: #1f2328; font-weight: 600; }
+
+  .hidden { display: none !important; }
+
+  /* Demo mode hint */
+  .demo-mode-hint { background: #fffbeb; border: 1px solid #fde68a; border-radius: 5px; padding: 7px 12px; font-size: 11px; color: #92400e; display: flex; align-items: center; gap: 6px; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <span class="topbar-logo">IBM Watsonx</span>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">AI Customer Success Coach</span>
+  <div class="topbar-spacer"></div>
+  <span class="demo-badge">DEMO</span>
+  <div class="topbar-sep"></div>
+  <div class="topbar-status">
+    <div class="status-dot"></div>
+    <span>デモモード</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ===== LEFT ===== -->
+  <div class="left">
+
+    <!-- Demo notice -->
+    <div class="demo-notice">
+      <strong>📋 デモ環境</strong><br>
+      これはWatsonx Challenge向けデモページです。<br>
+      「デモデータ読込」でサンプル顧客データを入力し、「AIに送信（デモ）」で実際のAI出力結果を表示します。<br>
+      <span style="font-size:10px;color:#6d28d9;margin-top:4px;display:block;">本番環境ではWatsonx.ai（meta-llama/llama-3-3-70b-instruct）にリアルタイム送信します。</span>
+    </div>
+
+    <!-- ICN -->
+    <div class="icn-banner">
+      <div class="icn-label">
+        IBM Customer Number（ICN）
+        <span class="future-tag">将来 Phase 3：ISC / Case Viewer 連携予定</span>
+      </div>
+      <div class="icn-row">
+        <input type="text" class="icn-input" id="icn-input" placeholder="例：1234567" maxlength="10">
+        <button class="btn-icn-load" id="btn-icn-load">カルテ読込</button>
+      </div>
+      <div class="icn-hint">デモ環境では ICN 読込はスキップされます</div>
+    </div>
+
+    <!-- Demo Loader -->
+    <div class="mode-selector" id="demo-loader">
+      <div class="mode-label">🎬 デモデータ読込</div>
+      <div class="mode-tabs">
+        <div class="mode-tab" id="demo-a" style="border-color:#3b82d4;">
+          <div class="mode-icon">🏭</div>
+          <div class="mode-name">A社（製造業）</div>
+          <div class="mode-desc">オンボーディング</div>
+        </div>
+        <div class="mode-tab" id="demo-b" style="border-color:#7c5cd8;">
+          <div class="mode-icon">🏦</div>
+          <div class="mode-name">B社（金融）</div>
+          <div class="mode-desc">Next Best Action</div>
+        </div>
+        <div class="mode-tab" id="demo-c" style="border-color:#059669;">
+          <div class="mode-icon">🛒</div>
+          <div class="mode-name">C社（流通）</div>
+          <div class="mode-desc">QBR準備</div>
+        </div>
+      </div>
+      <div style="font-size:10px;color:#8b949e;margin-top:6px;">クリックでフォームに架空顧客データを自動入力します</div>
+    </div>
+
+    <!-- Mode Selector -->
+    <div class="mode-selector">
+      <div class="mode-label">モードを選択</div>
+      <div class="mode-tabs">
+        <div class="mode-tab active-onboard" id="tab-onboard" data-mode="onboarding">
+          <div class="mode-icon">🚀</div>
+          <div class="mode-name">オンボーディング</div>
+          <div class="mode-desc">進捗診断・リスク検知</div>
+        </div>
+        <div class="mode-tab" id="tab-nba" data-mode="nba">
+          <div class="mode-icon">🎯</div>
+          <div class="mode-name">Next Best Action</div>
+          <div class="mode-desc">優先アクション提案</div>
+        </div>
+        <div class="mode-tab" id="tab-qbr" data-mode="qbr">
+          <div class="mode-icon">📊</div>
+          <div class="mode-name">QBR 準備</div>
+          <div class="mode-desc">資料ドラフト生成</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ONBOARDING FORM -->
+    <div id="form-onboard">
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-blue"></div><span class="form-card-title">顧客基本情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">会社名 <span class="req-mark">*</span></label>
+              <input type="text" class="future-f" id="ob-company" placeholder="例：A社">
+            </div>
+            <div class="field">
+              <label class="field-label">業種 <span class="req-mark">*</span></label>
+              <select id="ob-industry">
+                <option value="">選択</option>
+                <option>製造業</option><option>金融・保険</option><option>流通・小売</option>
+                <option>医療・ヘルスケア</option><option>公共・自治体</option><option>IT・通信</option>
+                <option>エネルギー・インフラ</option><option>その他</option>
+              </select>
+            </div>
+          </div>
+          <datalist id="focus-products-list">
+            <option value="watsonx Orchestrate">
+            <option value="watsonx.governance">
+            <option value="watsonx Code Assistant">
+            <option value="watsonx.data">
+            <option value="Guardium">
+            <option value="Planning Analytics">
+            <option value="watsonx.data integration">
+            <option value="Terraform">
+            <option value="Cloudability">
+            <option value="Kubecost">
+            <option value="Instana">
+            <option value="Concert">
+            <option value="Vault">
+            <option value="Verify">
+            <option value="NS1">
+            <option value="Maximo">
+            <option value="webMethods Hybrid Integration">
+            <option value="PowerVS">
+            <option value="Fusion">
+            <option value="Flash">
+          </datalist>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">契約製品 <span class="req-mark">*</span></label>
+              <input type="text" class="future-f" id="ob-products" list="focus-products-list" placeholder="例：watsonx.data">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来 Phase 3：ISC 自動入力予定</div>
+            </div>
+            <div class="field">
+              <label class="field-label">ライセンス数 <span class="req-mark">*</span></label>
+              <input type="number" class="future-f" id="ob-license" placeholder="自動入力予定">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来 Phase 3：ISC 自動入力予定</div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">導入フェーズ <span class="req-mark">*</span></label>
+            <div class="toggle-group" id="ob-phase">
+              <div class="toggle-btn sel-blue">導入前</div>
+              <div class="toggle-btn">導入直後</div>
+              <div class="toggle-btn">安定運用</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-orange"></div><span class="form-card-title">BP・関与者情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field">
+            <label class="field-label">BPの有無 <span class="req-mark">*</span></label>
+            <div class="toggle-group" id="ob-bp-exist">
+              <div class="toggle-btn sel-orange" data-val="unknown">不明</div>
+              <div class="toggle-btn" data-val="yes">あり</div>
+              <div class="toggle-btn" data-val="no">なし</div>
+            </div>
+            <div class="bp-alert show" id="ob-bp-alert" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;">
+              <span>⚠</span><div>BP不明の場合、<strong>BP確認がCSMの最初のアクション</strong>になります。</div>
+            </div>
+          </div>
+          <div id="ob-bp-detail" class="hidden">
+            <div class="field-row">
+              <div class="field">
+                <label class="field-label">BP名</label>
+                <input type="text" class="future-f" id="ob-bp-name" placeholder="将来 Phase 3：ISC 自動入力予定">
+              </div>
+              <div class="field">
+                <label class="field-label">BP経験レベル <span class="req-mark">*</span></label>
+                <select id="ob-bp-exp">
+                  <option value="">選択</option>
+                  <option value="経験豊富（3年以上）">経験豊富（3年以上）</option>
+                  <option value="経験浅い（3年未満）">経験浅い（3年未満）</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field-label">BPと顧客との関係性</label>
+              <textarea id="ob-bp-rel" placeholder="既存取引の関係年数・アクセス層など"></textarea>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">IBM-Cの関与</label>
+              <div class="toggle-group" id="ob-ibmc"><div class="toggle-btn sel-blue">なし</div><div class="toggle-btn">あり（検討中）</div><div class="toggle-btn">あり（参画中）</div></div>
+            </div>
+            <div class="field">
+              <label class="field-label">TELの関与</label>
+              <div class="toggle-group" id="ob-tel"><div class="toggle-btn sel-blue">なし</div><div class="toggle-btn">あり</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-blue"></div><span class="form-card-title">利用状況</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">登録ユーザー数 <span class="req-mark">*</span></label>
+              <input type="number" id="ob-users" placeholder="例：20">
+            </div>
+            <div class="field">
+              <label class="field-label">アクティブ数（30日）</label>
+              <input type="number" id="ob-active" placeholder="例：8">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">ユースケース実装状況 <span class="req-mark">*</span></label>
+            <div class="toggle-group" id="ob-uc"><div class="toggle-btn">未着手</div><div class="toggle-btn sel-blue">一部実装</div><div class="toggle-btn">完了</div></div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label class="field-label">チケット件数</label>
+              <input type="number" class="future-f" id="ob-tickets" placeholder="将来：自動入力">
+              <div class="isc-hint"><div class="isc-dot-sm"></div>将来 Phase 3：Case Viewer 自動入力予定</div>
+            </div>
+            <div class="field">
+              <label class="field-label">NPS / CSAT</label>
+              <input type="text" id="ob-nps" placeholder="例：NPS +20 / 未回収">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <div class="form-card-header"><div class="hdr-dot d-gray"></div><span class="form-card-title">活動履歴・備考</span><span class="badge-opt">任意</span></div>
+        <div class="form-card-body">
+          <div class="field"><label class="field-label">議事録サマリー</label><textarea id="ob-notes" placeholder="要点のみでOK"></textarea></div>
+          <div class="field"><label class="field-label">顧客の懸念</label><textarea id="ob-concerns" placeholder="顧客から挙がっている課題・懸念"></textarea></div>
+          <div class="field"><label class="field-label">類似事例</label><textarea id="ob-cases" placeholder="業種・規模・成果を自由記述"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NBA FORM -->
+    <div id="form-nba" class="hidden">
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-purple"></div><span class="form-card-title">顧客基本情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">会社名 <span class="req-mark">*</span></label><input type="text" class="future-f" id="nba-company" placeholder="例：B社"></div>
+            <div class="field"><label class="field-label">業種 <span class="req-mark">*</span></label><select id="nba-industry"><option value="">選択</option><option>製造業</option><option>金融・保険</option><option>流通・小売</option><option>医療・ヘルスケア</option><option>IT・通信</option><option>その他</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">契約製品 <span class="req-mark">*</span></label><input type="text" class="future-f" id="nba-products" list="focus-products-list" placeholder="例：Instana"></div>
+            <div class="field"><label class="field-label">契約更新日 <span class="req-mark">*</span></label><input type="date" class="future-f" id="nba-renewal"></div>
+          </div>
+          <div class="field"><label class="field-label">導入フェーズ</label><div class="toggle-group" id="nba-phase"><div class="toggle-btn">導入直後</div><div class="toggle-btn sel-purple">安定運用</div></div></div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-orange"></div><span class="form-card-title">BP・関与者情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">BP名</label><input type="text" class="future-f" id="nba-bp-name" placeholder="将来 Phase 3：ISC 自動入力予定"></div>
+            <div class="field"><label class="field-label">BP経験レベル</label><select id="nba-bp-exp"><option value="">選択</option><option value="経験豊富（3年以上）">経験豊富（3年以上）</option><option value="経験浅い（3年未満）">経験浅い（3年未満）</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">IBM-Cの関与</label><div class="toggle-group" id="nba-ibmc"><div class="toggle-btn sel-purple">なし</div><div class="toggle-btn">あり</div></div></div>
+            <div class="field"><label class="field-label">TELの関与</label><div class="toggle-group" id="nba-tel"><div class="toggle-btn">なし</div><div class="toggle-btn sel-purple">あり</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-purple"></div><span class="form-card-title">健全性指標</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">アクティブユーザー率 <span class="req-mark">*</span></label><input type="text" id="nba-active" placeholder="例：52%"></div>
+            <div class="field"><label class="field-label">前回コンタクトから</label><input type="text" id="nba-days" placeholder="例：21日前"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">NPS / CSAT</label><input type="text" id="nba-nps" placeholder="例：NPS -15"></div>
+            <div class="field"><label class="field-label">チケット傾向</label><select id="nba-ticket"><option>増加傾向</option><option>横ばい</option><option>減少傾向</option><option>ほぼなし</option></select></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header"><div class="hdr-dot d-gray"></div><span class="form-card-title">リスク・機会シグナル</span><span class="badge-opt">任意</span></div>
+        <div class="form-card-body">
+          <div class="field"><label class="field-label">顧客の懸念・不満</label><textarea id="nba-risk" placeholder="例：コスト対効果への疑問。競合比較など"></textarea></div>
+          <div class="field"><label class="field-label">競合状況</label><textarea id="nba-competitor" placeholder="例：VMware Workspace ONEを評価中"></textarea></div>
+          <div class="field"><label class="field-label">アップセル兆候</label><textarea id="nba-upsell" placeholder="例：SIEM連携の可能性を打診された"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QBR FORM -->
+    <div id="form-qbr" class="hidden">
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-green"></div><span class="form-card-title">QBR基本情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">会社名 <span class="req-mark">*</span></label><input type="text" class="future-f" id="qbr-company" placeholder="例：C社"></div>
+            <div class="field"><label class="field-label">対象期間 <span class="req-mark">*</span></label><input type="text" id="qbr-period" placeholder="例：2025年Q1"></div>
+          </div>
+          <div class="field">
+            <label class="field-label">契約製品 <span class="req-mark">*</span></label>
+            <input type="text" class="future-f" id="qbr-products" list="focus-products-list" placeholder="例：Maximo">
+            <div class="isc-hint"><div class="isc-dot-sm"></div>将来 Phase 3：ISC 自動入力予定</div>
+          </div>
+          <div class="field"><label class="field-label">顧客KPI・成功指標 <span class="req-mark">*</span></label><textarea id="qbr-kpis" placeholder="顧客自身の言葉で記入"></textarea></div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-orange"></div><span class="form-card-title">BP・関与者情報</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">BP名</label><input type="text" class="future-f" id="qbr-bp-name" placeholder="将来 Phase 3：ISC 自動入力予定"></div>
+            <div class="field"><label class="field-label">BP経験レベル</label><select id="qbr-bp-exp"><option value="">選択</option><option value="経験豊富（3年以上）">経験豊富（3年以上）</option><option value="経験浅い（3年未満）">経験浅い（3年未満）</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label class="field-label">IBM-Cの関与</label><div class="toggle-group" id="qbr-ibmc"><div class="toggle-btn sel-green">なし</div><div class="toggle-btn">あり</div></div></div>
+            <div class="field"><label class="field-label">TELの関与</label><div class="toggle-group" id="qbr-tel"><div class="toggle-btn sel-green">なし</div><div class="toggle-btn">あり</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-card" style="margin-bottom:10px;">
+        <div class="form-card-header"><div class="hdr-dot d-green"></div><span class="form-card-title">今期の実績</span><span class="badge-req">必須</span></div>
+        <div class="form-card-body">
+          <div class="field-row">
+            <div class="field"><label class="field-label">アクティブユーザー率 <span class="req-mark">*</span></label><input type="text" id="qbr-active" placeholder="例：78%"></div>
+            <div class="field"><label class="field-label">NPS / CSAT</label><input type="text" id="qbr-nps" placeholder="例：NPS +42"></div>
+          </div>
+          <div class="field"><label class="field-label">その他定量実績</label><textarea id="qbr-metrics" placeholder="例：処理時間28%短縮。欠品率3.2%"></textarea></div>
+        </div>
+      </div>
+      <div class="form-card">
+        <div class="form-card-header"><div class="hdr-dot d-gray"></div><span class="form-card-title">前回QBR・次期目標</span><span class="badge-opt">任意</span></div>
+        <div class="form-card-body">
+          <div class="field"><label class="field-label">前回アクションと達成状況</label><textarea id="qbr-prev" placeholder="例：①返品管理→未着手 ②トレーニング→完了"></textarea></div>
+          <div class="field"><label class="field-label">次期ビジネス目標 <span class="req-mark">*</span></label><textarea id="qbr-goal" placeholder="例：夏季繁忙期の在庫精度向上。越境EC展開計画中"></textarea></div>
+          <div class="field"><label class="field-label">提案したい追加製品</label><textarea id="qbr-upsell" placeholder="例：返品管理モジュール・AI需要予測オプション"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-area">
+      <div class="submit-hint">必須項目を入力してAIに送信してください</div>
+      <button class="btn-clear" id="btn-clear">クリア</button>
+      <button class="btn-submit" id="btn-submit">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+        AIに送信（デモ）
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ===== RIGHT ===== -->
+  <div class="right">
+
+    <!-- Output Header -->
+    <div class="output-header">
+      <div class="output-header-title">AI Coach — 診断結果</div>
+      <span class="risk-badge risk-unknown" id="risk-badge"> </span>
+      <button class="btn-copy" id="btn-copy">コピー</button>
+    </div>
+
+    <!-- Output Body -->
+    <div class="output-body" id="output-body">
+      <div class="output-placeholder" id="output-placeholder">
+        <div class="output-placeholder-icon">🤖</div>
+        <div>左のフォームに顧客情報を入力してAIに送信してください</div>
+        <div style="font-size:12px;color:#c0c8d0;">診断結果・アクション提案・メール文面が生成されます</div>
+      </div>
+      <div class="loading-wrap" id="loading-wrap">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Watsonx.ai に送信中...</div>
+      </div>
+      <div class="output-content hidden" id="output-content"></div>
+    </div>
+
+    <div class="token-info hidden" id="token-info">デモ出力（実際のAI生成結果サンプル）</div>
+
+    <!-- Karute Panel （デモ用簡易版） -->
+    <div class="karute-panel hidden" id="karute-panel">
+      <div class="karute-title">顧客カルテ（デモ）</div>
+      <div id="karute-content"></div>
+    </div>
+
+    <!-- Demo mode notice at bottom -->
+    <div class="demo-mode-hint">
+      ⚠ これはデモ環境です。AI出力は実際にWatsonx.aiで生成されたサンプルを表示しています。本番環境ではリアルタイムにAIが推論します。
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentMode = 'onboarding';
+
+// ---------------------------------------------------------------
+// Mock AI responses (actual Watsonx.ai generated output)
+// ---------------------------------------------------------------
+const MOCK_RESPONSES = {
+  onboarding: {
+    riskLevel: 'HIGH RISK',
+    tokenCount: 847,
+    text: `1. リスク診断：HIGH RISK
+   - 契約から6週間経過しても利用状況が低迷していること
+   - 操作の習熟度不足と現場の抵抗感が顕在化していること
+   - NPS/CSATスコア未取得により顧客満足度不明
+
+2. Human Touchが必要な理由：Tech Touchではカバーできない、顧客の具体的な導入状況や運用上の課題に対処するために、人為的な介入が必要です。また、BPの存在と経験レベルの確認もHuman Touchを通じて行う必要があります。
+
+3. 今週中に実施すべきCSMアクション：
+   1. BPの有無・担当者・経験レベルの確認を行い、今後のアプローチを決定する（今週末まで）
+   2. 現場エンジニアへの直接的なサポート要望を確認し、具体的なニーズを把握する（今週末まで）
+   3. watsonx.aiに関する導入支援・トレーニングニーズについて顧客と詳細にディスカッションする（今週末まで）
+
+4. 30日以内に実施すべきCSMアクション：
+   1. BPが不明または経験浅い場合、CSMが直接顧客に介入し導入促進とトレーニングを提供する（15日以内）
+   2. 顧客のNPS/CSATスコアを収集し、顧客満足度を評価する（20日以内）
+   3. watsonx.aiに関するWebinar参加案内を提供し、顧客の関心を高めて導入を促進する（25日以内）
+
+5. 顧客への連絡メール文面案：
+   件名：watsonx.ai 導入状況のフォローアップおよびサポートについて
+
+   お世話になります。IBM CSMの田中です。
+   
+   A社様のwatsonx.ai導入状況について確認させていただきました。現在、利用状況が低迷しており、操作の習熟度不足や現場の抵抗感が顕在化している状況を伺っております。
+   
+   今週中にはBPの有無・経験レベルの確認、および具体的なニーズを把握するためのお打ち合わせを実施させてください。
+   
+   また、導入初期に多くの顧客様にご好評いただいている「watsonx.ai ハンズオントレーニング（無料）」のご案内もあわせて送付いたします。
+   
+   ご都合のよい日時をお知らせください。
+
+6. 確認すべき追加情報：
+   1. BPの経験レベルと顧客との関係性
+   2. 顧客の具体的な導入計画とロードマップ
+   3. 関連製品（watsonx Orchestrate等）の導入計画の有無
+
+---
+診断サマリー：顧客の導入状況が低迷しており、高いチャーンリスクが存在します。BPの経験レベルと顧客との関係性を早急に確認し、適切なアプローチを決定することが重要です。`
+  },
+  nba: {
+    riskLevel: 'MEDIUM',
+    tokenCount: 712,
+    text: `1. 顧客健全性スコア：MEDIUM
+根拠：
+   - 直近30日アクティブユーザー率が52%と低い
+   - NPSスコアが-15と大きく下落しており、顧客の満足度が低下している
+   - サポートチケットが増加傾向にある
+
+2. Human Touchが必要な理由：
+Tech Touchだけでは、顧客の不満や懸念に対処できません。NPSスコアの大幅な低下とサポートチケットの増加は、積極的な介入が必要であることを示しています。TELが既に関与しているため、TELとの連携が効果的です。
+
+3. Next Best Action TOP3：
+   1. TELと連携してエグゼクティブブリーフィングを設定する
+      目的：経営層との関係再構築 / 期限：2週間以内
+      実施方法：TELと共同でエグゼクティブ向け価値提示資料を作成し、CxOへの直接アプローチを打診する
+      期待効果：上位層でのコミットメント強化・競合リスクの低減
+
+   2. VMware競合リスクへの対応：IBM MAAS360の差別化ポイントを顧客CIOに直接提示
+      目的：競合スイッチを防ぐ / 期限：1週間以内
+      実施方法：MAAS360とVMware Workspace ONEのTCO比較・セキュリティ機能比較資料を準備し、BP経由またはCSM直接でCIOに送付
+      期待効果：競合評価に対する明確な回答・顧客の判断材料提供
+
+   3. TELと共同でRenewal計画を立案し、早期更新インセンティブを検討する
+      目的：Renewal確保 / 期限：3週間以内
+      実施方法：TELと共同でRenewal提案を策定し、顧客のニーズとIBMの提供サービスを一致させる
+      期待効果：顧客との関係をさらに強化し、契約更新の成功率を高める
+
+4. 避けるべきアクション：
+   - 顧客の不満に対してただ謝罪したり、問題点を単純に否定したりすること
+   - Tech Touchのみで対応しようとすること（人間の介入が必要な段階です）
+   - BPを通じてのみアプローチしリスクの本質に向き合わないこと
+
+5. 確認すべき追加情報：
+   1. 顧客CIO/CxOのVMware評価の具体的な進捗状況
+   2. 予算見直し時期の詳細スケジュール
+   3. NPS急落の具体的なトリガーとなった出来事の把握`
+  },
+  qbr: {
+    riskLevel: 'HEALTHY',
+    tokenCount: 934,
+    text: `1. エグゼクティブサマリー
+C社はIBM Sterling Order Managementを活用し、注文処理リードタイムを28%短縮、在庫同期精度99.1%を達成しました。NPS +42（前四半期比+14）と顧客満足度も大幅に向上。次期は欠品率の目標達成と越境EC展開が主要テーマです。
+
+2. 今期の成果サマリー（KPI対比）
+   - 注文処理リードタイム：28%短縮達成（目標30% → 目標まであと少し）
+   - 欠品率：3.2%（目標2%以下 → 未達だが改善傾向）
+   - 在庫同期精度：99.1%達成 ✓
+   - カスタマーサポート問い合わせ：280件/月（目標300件以下 → 達成 ✓）
+   - アクティブユーザー率：78%（90/500名）
+
+3. 課題と対応状況
+   - 返品管理モジュール：未着手（予算承認待ち）→ 4月以降の実装開始を予定
+   - 欠品率：2.0%目標に対し3.2%で未達 → AI需要予測の本番適用で解決を目指す
+
+4. 次期アクションアイテム（YYソリューションズ・IBM-C・TEL連携）
+   1. 返品管理モジュールの正式導入（期限：7月末）
+      担当：YYソリューションズ + IBM-C協力
+      根拠：PoCでの効果実証済み・予算承認の見通し立つ
+   2. AI需要予測オプションの本番適用（期限：8月）
+      担当：YYソリューションズと共同運用開始
+      根拠：PoCで15%の予測精度向上を確認済み
+   3. 越境EC対応グローバル拡張ライセンスの提案準備（期限：9月）
+      担当：TELと共同で顧客に提案
+      根拠：2026年度中に東南アジア2カ国への展開計画あり
+
+5. 提案スライド骨子（5枚構成）
+   スライド1：エグゼクティブサマリー（成果ハイライト・NPS推移）
+   スライド2：KPI達成状況（ビジュアル対比）
+   スライド3：課題と対応計画（返品管理・欠品率）
+   スライド4：次期アクションロードマップ（Q2〜Q3）
+   スライド5：拡張提案（AI需要予測・越境ECライセンス）
+
+6. 想定される顧客からの質問と回答案
+   Q：返品管理自動化の実装時期について
+   A：4月以降に実装開始予定で、YYソリューションズと協力して進行します。
+   
+   Q：AI需要予測オプションの効果について
+   A：PoCで15%の予測精度向上を確認しており、8月までに本番適用を目指しています。
+   
+   Q：越境EC展開における在庫管理の重要性について
+   A：事前のマスターデータ整備が成功の鍵です。IBM-Cと共同でサポートします。
+
+7. 確認すべき追加情報
+   1. 返品管理自動化の予算承認の具体的なスケジュール
+   2. AI需要予測オプションの適用に伴う追加コストと効果の想定
+   3. 越境EC展開におけるTELの役割と責任範囲の明確化`
+  }
+};
+
+// ---------------------------------------------------------------
+// Demo customers data
+// ---------------------------------------------------------------
+const DEMO_CUSTOMERS = {
+  'demo-a': {
+    mode: 'onboarding',
+    data: {
+      company_name: 'A社（自動車部品メーカー）', industry: '製造業',
+      products: 'watsonx.ai', license_count: '50',
+      registered_users: '20', active_users: '8', nps_score: '未回収',
+      meeting_notes: '先週のキックオフで管理者設定完了。現場エンジニア3名がトレーニング参加。他部門への展開が止まっている。担当者「操作が難しい」',
+      customer_concerns: 'ツールの操作習得に時間がかかる。現場の抵抗感が強い',
+      success_cases: '同業B社で同製品導入、3ヶ月でレポート作成工数35%削減。現場リーダーを巻き込んだハンズオントレーニングが成功の鍵',
+      phase: '導入直後', usecase_status: '一部実装', ibm_c_involved: 'なし', tel_involved: 'なし', bp_exist: 'unknown'
+    }
+  },
+  'demo-b': {
+    mode: 'nba',
+    data: {
+      company_name: 'B社（地方銀行）', industry: '金融・保険',
+      products: 'IBM MAAS360', renewal_date: '2025-09-30',
+      active_rate: '52%（56/300名）', nps_score: 'NPS -15（前回+10から急落）',
+      days_since_contact: '21日前', bp_name: 'XX商事', bp_experience: '経験浅い（3年未満）',
+      bp_relationship: '既存のPC調達取引あり。エグゼクティブへのアクセスは限定的',
+      risk_signals: 'コスト対効果への疑問。他社SaaS製品を比較検討中（競合：VMware Workspace ONE）。予算見直し時期と重なっている',
+      competitor_info: 'VMware Workspace ONEを3ヶ月前から評価中。IT部門の一部メンバーが推薦',
+      upsell_signals: 'セキュリティインシデント対応強化に関心あり。SIEM連携の可能性を打診された',
+      meeting_notes: '先月の定例では担当者の返答が短く積極的な質問がなかった。エグゼクティブとの接点は6ヶ月以上なし',
+      phase: '安定運用', ticket_trend: '増加傾向', ibm_c_involved: 'なし', tel_involved: 'あり'
+    }
+  },
+  'demo-c': {
+    mode: 'qbr',
+    data: {
+      company_name: 'C社（大手スーパーマーケットチェーン）', review_period: '2025年Q1（1月、2月、3月）',
+      products: 'IBM Sterling Order Management',
+      customer_kpis: '①注文処理リードタイム30%短縮\n②欠品率を現状5%から2%以下に削減\n③カスタマーサポート問い合わせ件数を月500件から300件以下に削減',
+      active_rate: '78%（90/500名）', nps_score: 'NPS +42（前四半期+28から上昇）',
+      other_metrics: '注文処理リードタイム：前年比28%短縮（目標30%まであと少し）。欠品率：3.2%（目標2%には未達）。在庫同期精度：99.1%達成',
+      bp_name: 'YYソリューションズ', bp_experience: '経験豊富（3年以上）',
+      bp_relationship: '3年前からの取引。現場責任者・経営層とも良好な関係を構築済み',
+      prev_actions: '①返品管理モジュールの導入検討→未着手（予算承認前）\n②物流チームへの追加トレーニング→完了（月2回実施・50名参加）\n③AI需要予測機能のPoC開始→完了（15%の予測精度向上を確認）',
+      next_biz_goal: '夏季繁忙期（7・8月）に向けた在庫精度向上、2026年度中に東南アジア2カ国への越境EC展開計画中',
+      upsell_options: '①返品管理モジュールの正式導入（PoC効果実証済み）\n②AI需要予測オプションの本番適用\n③越境EC対応のグローバル拡張ライセンス',
+      ibm_c_involved: 'あり', tel_involved: 'あり'
+    }
+  }
+};
+
+// ---------------------------------------------------------------
+// Demo loader
+// ---------------------------------------------------------------
+function setToggleByText(groupId, text) {
+  const group = document.getElementById(groupId);
+  if (!group) return;
+  const modeColors = { onboarding: 'sel-blue', nba: 'sel-purple', qbr: 'sel-green' };
+  group.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.classList.remove('sel-blue','sel-purple','sel-green','sel-orange');
+    if (btn.textContent.trim().startsWith(text)) {
+      btn.classList.add(modeColors[currentMode] || 'sel-blue');
+    }
+  });
+}
+
+function loadDemoData(demoId) {
+  const demo = DEMO_CUSTOMERS[demoId];
+  if (!demo) return;
+
+  const modeTabMap = { onboarding: 'tab-onboard', nba: 'tab-nba', qbr: 'tab-qbr' };
+  document.getElementById(modeTabMap[demo.mode]).click();
+
+  const d = demo.data;
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined && val !== null) el.value = val; };
+
+  if (demo.mode === 'onboarding') {
+    set('ob-company', d.company_name); set('ob-products', d.products);
+    set('ob-license', d.license_count); set('ob-users', d.registered_users);
+    set('ob-active', d.active_users); set('ob-nps', d.nps_score);
+    set('ob-notes', d.meeting_notes); set('ob-concerns', d.customer_concerns);
+    set('ob-cases', d.success_cases);
+    const indEl = document.getElementById('ob-industry');
+    if (indEl) [...indEl.options].forEach(o => { if (o.text.startsWith('製造')) indEl.value = o.value; });
+    const bpUnknownBtn = document.querySelector('#ob-bp-exist [data-val="unknown"]');
+    if (bpUnknownBtn) bpUnknownBtn.click();
+    setToggleByText('ob-phase', '導入直後');
+    setToggleByText('ob-uc', '一部実装');
+    setToggleByText('ob-ibmc', 'なし');
+    setToggleByText('ob-tel', 'なし');
+  }
+
+  if (demo.mode === 'nba') {
+    set('nba-company', d.company_name); set('nba-products', d.products);
+    set('nba-renewal', d.renewal_date); set('nba-active', d.active_rate);
+    set('nba-nps', d.nps_score); set('nba-days', d.days_since_contact);
+    set('nba-bp-name', d.bp_name); set('nba-risk', d.risk_signals);
+    set('nba-competitor', d.competitor_info); set('nba-upsell', d.upsell_signals);
+    const bpExpEl = document.getElementById('nba-bp-exp');
+    if (bpExpEl) bpExpEl.value = d.bp_experience;
+    const tickEl = document.getElementById('nba-ticket');
+    if (tickEl) tickEl.value = d.ticket_trend;
+    const indEl = document.getElementById('nba-industry');
+    if (indEl) [...indEl.options].forEach(o => { if (o.text.startsWith('金融')) indEl.value = o.value; });
+    setToggleByText('nba-phase', '安定運用');
+    setToggleByText('nba-ibmc', 'なし');
+    setToggleByText('nba-tel', 'あり');
+  }
+
+  if (demo.mode === 'qbr') {
+    set('qbr-company', d.company_name); set('qbr-period', d.review_period);
+    set('qbr-kpis', d.customer_kpis); set('qbr-active', d.active_rate);
+    set('qbr-nps', d.nps_score); set('qbr-metrics', d.other_metrics);
+    set('qbr-bp-name', d.bp_name); set('qbr-prev', d.prev_actions);
+    set('qbr-goal', d.next_biz_goal); set('qbr-upsell', d.upsell_options);
+    const bpExpEl = document.getElementById('qbr-bp-exp');
+    if (bpExpEl) bpExpEl.value = d.bp_experience;
+    setToggleByText('qbr-ibmc', 'あり');
+    setToggleByText('qbr-tel', 'あり');
+  }
+}
+
+document.getElementById('demo-a').addEventListener('click', () => loadDemoData('demo-a'));
+document.getElementById('demo-b').addEventListener('click', () => loadDemoData('demo-b'));
+document.getElementById('demo-c').addEventListener('click', () => loadDemoData('demo-c'));
+
+// ---------------------------------------------------------------
+// Mode switching
+// ---------------------------------------------------------------
+document.querySelectorAll('.mode-tab[data-mode]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mode-tab[data-mode]').forEach(t => t.classList.remove('active-onboard','active-nba','active-qbr'));
+    ['form-onboard','form-nba','form-qbr'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    currentMode = tab.dataset.mode;
+    const cls = { onboarding: 'active-onboard', nba: 'active-nba', qbr: 'active-qbr' }[currentMode];
+    tab.classList.add(cls);
+    document.getElementById(`form-${currentMode === 'onboarding' ? 'onboard' : currentMode}`).classList.remove('hidden');
+    const colors = { onboarding: '#3b82d4', nba: '#7c5cd8', qbr: '#059669' };
+    document.getElementById('btn-submit').style.background = colors[currentMode];
+  });
+});
+
+// ---------------------------------------------------------------
+// Toggle groups
+// ---------------------------------------------------------------
+document.querySelectorAll('.toggle-group').forEach(group => {
+  group.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cls = { onboarding: 'sel-blue', nba: 'sel-purple', qbr: 'sel-green' }[currentMode] || 'sel-blue';
+      if (group.id === 'ob-bp-exist') {
+        group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('sel-blue','sel-orange'));
+        btn.classList.add(btn.dataset.val === 'unknown' ? 'sel-orange' : 'sel-blue');
+        const alert  = document.getElementById('ob-bp-alert');
+        const detail = document.getElementById('ob-bp-detail');
+        if (btn.dataset.val === 'unknown') { alert.classList.add('show'); detail.classList.add('hidden'); }
+        else if (btn.dataset.val === 'yes') { alert.classList.remove('show'); detail.classList.remove('hidden'); }
+        else { alert.classList.remove('show'); detail.classList.add('hidden'); }
+        return;
+      }
+      group.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('sel-blue','sel-purple','sel-green','sel-orange'));
+      btn.classList.add(cls);
+    });
+  });
+});
+
+// ---------------------------------------------------------------
+// ICN load (demo: show simple mock karute)
+// ---------------------------------------------------------------
+document.getElementById('btn-icn-load').addEventListener('click', () => {
+  const icn = document.getElementById('icn-input').value.trim();
+  if (!icn) return;
+  // デモ用：簡易カルテ表示
+  const panel = document.getElementById('karute-panel');
+  const content = document.getElementById('karute-content');
+  panel.classList.remove('hidden');
+  content.innerHTML = `
+    <div class="karute-item"><span class="karute-key">ICN</span><span class="karute-val">${icn}</span></div>
+    <div class="karute-item"><span class="karute-key">ステータス</span><span class="karute-val" style="color:#f59e0b;">デモ環境 — カルテ未登録</span></div>
+    <div class="karute-item"><span class="karute-key">本番環境</span><span class="karute-val" style="font-size:11px;">ISC連携後に自動取得（Phase 3）</span></div>
+  `;
+});
+
+// ---------------------------------------------------------------
+// Submit (mock)
+// ---------------------------------------------------------------
+document.getElementById('btn-submit').addEventListener('click', () => {
+  document.getElementById('output-placeholder').classList.add('hidden');
+  document.getElementById('output-content').classList.add('hidden');
+  document.getElementById('loading-wrap').style.display = 'flex';
+  document.getElementById('btn-submit').disabled = true;
+  document.getElementById('token-info').classList.add('hidden');
+
+  const loadingMsgs = ['Watsonx.ai に送信中...', 'AIが分析しています...', '診断結果を生成中...'];
+  let msgIdx = 0;
+  const msgTimer = setInterval(() => {
+    document.getElementById('loading-text').textContent = loadingMsgs[msgIdx % loadingMsgs.length];
+    msgIdx++;
+  }, 1200);
+
+  // 1.8秒後にモック結果を表示（実際のAPIレイテンシを再現）
+  setTimeout(() => {
+    clearInterval(msgTimer);
+    const mock = MOCK_RESPONSES[currentMode];
+
+    document.getElementById('loading-wrap').style.display = 'none';
+    const contentEl = document.getElementById('output-content');
+    contentEl.classList.remove('hidden');
+    contentEl.textContent = mock.text;
+
+    const badge = document.getElementById('risk-badge');
+    badge.textContent = mock.riskLevel;
+    badge.className = 'risk-badge';
+    if (mock.riskLevel === 'HIGH RISK') badge.classList.add('risk-high');
+    else if (mock.riskLevel === 'MEDIUM') badge.classList.add('risk-medium');
+    else if (mock.riskLevel === 'HEALTHY') badge.classList.add('risk-healthy');
+    else badge.classList.add('risk-unknown');
+
+    const tokenEl = document.getElementById('token-info');
+    tokenEl.textContent = `生成トークン数: ${mock.tokenCount}（デモ — 実際のWatsonx.ai生成結果）`;
+    tokenEl.classList.remove('hidden');
+
+    document.getElementById('btn-submit').disabled = false;
+  }, 1800);
+});
+
+// ---------------------------------------------------------------
+// Clear
+// ---------------------------------------------------------------
+document.getElementById('btn-clear').addEventListener('click', () => {
+  const formId = { onboarding: 'form-onboard', nba: 'form-nba', qbr: 'form-qbr' }[currentMode];
+  const form = document.getElementById(formId);
+  if (form) {
+    form.querySelectorAll('input[type="text"], input[type="number"], input[type="date"], textarea').forEach(el => el.value = '');
+    form.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+  }
+  document.getElementById('icn-input').value = '';
+  document.getElementById('karute-panel').classList.add('hidden');
+  document.getElementById('output-content').classList.add('hidden');
+  document.getElementById('output-placeholder').classList.remove('hidden');
+  document.getElementById('output-placeholder').innerHTML = `<div class="output-placeholder-icon">🤖</div><div>左のフォームに顧客情報を入力してAIに送信してください</div><div style="font-size:12px;color:#c0c8d0;">診断結果・アクション提案・メール文面が生成されます</div>`;
+  document.getElementById('risk-badge').textContent = ' ';
+  document.getElementById('risk-badge').className = 'risk-badge risk-unknown';
+  document.getElementById('token-info').classList.add('hidden');
+});
+
+// ---------------------------------------------------------------
+// Copy
+// ---------------------------------------------------------------
+document.getElementById('btn-copy').addEventListener('click', () => {
+  const text = document.getElementById('output-content').textContent;
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('btn-copy');
+    btn.textContent = 'コピー完了！';
+    setTimeout(() => { btn.textContent = 'コピー'; }, 2000);
+  });
+});
+</script>
+</body>
+</html>
